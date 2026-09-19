@@ -105,6 +105,7 @@ const pageMeta = {
  ssh: { title: 'Pengaturan SSH', section: 'Pengaturan SSH' },
  history: { title: 'Arsip Dokumen RKA', section: 'Arsip Dokumen RKA' },
  config: { title: 'Pengaturan', section: 'Pengaturan' },
+ report: { title: 'Laporan', section: 'Laporan' },
 };
 
 const pageTitle = computed(() => pageMeta[currentTab.value]?.title || 'Beranda');

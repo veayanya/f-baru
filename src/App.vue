@@ -169,6 +169,7 @@
  <div class="page-header">
  <span class="page-kicker">Laporan</span>
  <h2 class="page-title-lg">Laporan</h2>
+ <p class="page-desc">Sampaikan kendala teknis, bug aplikasi, masukan, atau permintaan bantuan Anda di sini. Laporan akan langsung masuk ke aplikasi admin dan dapat ditindaklanjuti melalui WhatsApp.</p>
  </div>
  <LaporanForm />
  </template>

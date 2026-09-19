@@ -9,9 +9,10 @@
     </div>
 
     <div class="card-body">
-      <form @submit.prevent="submitLaporan">
-        <div class="form-row">
-          <div class="form-group" style="flex: 2;">
+      <form class="laporan-form-grid" @submit.prevent="submitLaporan">
+        <!-- Kolom utama: judul + deskripsi (mengisi seluruh tinggi tersedia) -->
+        <div class="laporan-col laporan-col-main">
+          <div class="form-group">
             <label class="form-label">Judul Laporan <span class="required">*</span></label>
             <input
               v-model="form.judul"
@@ -21,7 +22,21 @@
               required
             />
           </div>
-          <div class="form-group" style="flex: 1;">
+
+          <div class="form-group laporan-desc-group">
+            <label class="form-label">Deskripsi Laporan <span class="required">*</span></label>
+            <textarea
+              v-model="form.deskripsi"
+              class="form-input laporan-desc-textarea"
+              placeholder="Jelaskan laporan Anda secara detail..."
+              required
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Kolom samping: data pelapor + lampiran -->
+        <div class="laporan-col laporan-col-side">
+          <div class="form-group">
             <label class="form-label">Kategori</label>
             <select v-model="form.kategori" class="form-input">
               <option>Kendala Teknis</option>
@@ -31,86 +46,73 @@
               <option>Lainnya</option>
             </select>
           </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-group" style="flex: 1;">
+          <div class="form-group">
             <label class="form-label">Nama Pelapor <span class="required">*</span></label>
             <input v-model="form.nama" type="text" class="form-input" placeholder="Nama Anda" required />
           </div>
-        </div>
 
-        <div class="form-row">
-          <div class="form-group" style="flex: 1;">
-            <label class="form-label">Email Pelapor</label>
-            <input
-              v-model="form.email"
-              type="email"
-              class="form-input"
-              placeholder="nama@email.com"
-            />
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label">Email Pelapor</label>
+              <input
+                v-model="form.email"
+                type="email"
+                class="form-input"
+                placeholder="nama@email.com"
+              />
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label">No. WhatsApp</label>
+              <input
+                v-model="form.noHp"
+                type="text"
+                class="form-input"
+                placeholder="6281234567890"
+              />
+            </div>
           </div>
-          <div class="form-group" style="flex: 1;">
-            <label class="form-label">No. WhatsApp Pelapor</label>
-            <input
-              v-model="form.noHp"
-              type="text"
-              class="form-input"
-              placeholder="Contoh: 6281234567890"
-            />
-          </div>
-        </div>
-        <p class="contact-hint">Isi minimal salah satu — Email atau No. WhatsApp — supaya kami bisa menghubungi Anda balik.</p>
+          <p class="contact-hint">Isi minimal salah satu — Email atau No. WhatsApp — supaya kami bisa menghubungi Anda balik.</p>
 
-        <div class="form-group">
-          <label class="form-label">Deskripsi Laporan <span class="required">*</span></label>
-          <textarea
-            v-model="form.deskripsi"
-            class="form-input"
-            rows="5"
-            placeholder="Jelaskan laporan Anda secara detail..."
-            required
-          ></textarea>
-        </div>
+          <div class="form-group laporan-attach-group">
+            <label class="form-label">Lampiran Gambar (opsional, maks. 5 gambar, 5MB/gambar)</label>
+            <div
+              :class="['laporan-dropzone', { dragover: isDragOver }]"
+              @click="triggerFileSelect"
+              @dragover.prevent="isDragOver = true"
+              @dragleave="isDragOver = false"
+              @drop.prevent="onDrop"
+            >
+              <input
+                ref="fileInput"
+                type="file"
+                accept="image/*"
+                multiple
+                style="display: none;"
+                @change="onFileChange"
+              />
+              <i data-lucide="image-plus" class="dropzone-icon"></i>
+              <p class="dropzone-text">Klik atau tarik gambar ke sini</p>
+            </div>
 
-        <div class="form-group">
-          <label class="form-label">Lampiran Gambar (opsional, maks. 5 gambar, 5MB/gambar)</label>
-          <div
-            :class="['laporan-dropzone', { dragover: isDragOver }]"
-            @click="triggerFileSelect"
-            @dragover.prevent="isDragOver = true"
-            @dragleave="isDragOver = false"
-            @drop.prevent="onDrop"
-          >
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/*"
-              multiple
-              style="display: none;"
-              @change="onFileChange"
-            />
-            <i data-lucide="image-plus" class="dropzone-icon"></i>
-            <p class="dropzone-text">Klik atau tarik gambar ke sini</p>
-          </div>
-
-          <div v-if="images.length > 0" class="image-preview-grid">
-            <div v-for="(img, idx) in images" :key="idx" class="image-preview-item">
-              <img :src="img.previewUrl" :alt="img.file.name" />
-              <button type="button" class="image-remove-btn" @click.stop="removeImage(idx)" title="Hapus gambar">
-                <i data-lucide="x"></i>
-              </button>
-              <span class="image-name">{{ img.file.name }}</span>
+            <div v-if="images.length > 0" class="image-preview-grid">
+              <div v-for="(img, idx) in images" :key="idx" class="image-preview-item">
+                <img :src="img.previewUrl" :alt="img.file.name" />
+                <button type="button" class="image-remove-btn" @click.stop="removeImage(idx)" title="Hapus gambar">
+                  <i data-lucide="x"></i>
+                </button>
+                <span class="image-name">{{ img.file.name }}</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div v-if="statusMessage" :class="['laporan-status-msg', statusType]">
-          <i :data-lucide="statusType === 'success' ? 'check-circle-2' : 'alert-circle'"></i>
-          <span>{{ statusMessage }}</span>
-        </div>
-
+        <!-- Footer: status + tombol kirim, selebar penuh -->
         <div class="laporan-form-footer">
+          <div v-if="statusMessage" :class="['laporan-status-msg', statusType]">
+            <i :data-lucide="statusType === 'success' ? 'check-circle-2' : 'alert-circle'"></i>
+            <span>{{ statusMessage }}</span>
+          </div>
           <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
             <i data-lucide="send"></i>
             {{ isSubmitting ? 'Mengirim...' : 'Kirim Laporan' }}
@@ -289,34 +291,95 @@ watch([statusMessage], () => {
 </script>
 
 <style scoped>
-.laporan-card { max-width: 780px; }
+/* Kartu mengisi seluruh lebar & tinggi yang tersedia di halaman */
+.laporan-card {
+  width: 100%;
+  max-width: none;
+  margin-bottom: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Grid utama: kolom konten (judul+deskripsi) lebih lebar, kolom data pelapor di samping */
+.laporan-form-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  grid-template-rows: 1fr auto;
+  column-gap: 28px;
+  row-gap: 16px;
+}
+
+.laporan-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.laporan-col-main { gap: 16px; }
+.laporan-col-side { gap: 14px; }
+
+.form-group { min-width: 0; }
+
+/* Deskripsi mengisi seluruh sisa ruang vertikal */
+.laporan-desc-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.laporan-desc-textarea {
+  flex: 1;
+  resize: none;
+  min-height: 220px;
+}
+
+/* Lampiran gambar mengisi sisa ruang di kolom samping */
+.laporan-attach-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.laporan-dropzone {
+  flex: 0 0 auto;
+}
+
 .required { color: #ef4444; margin-left: 2px; }
-.form-row { display: flex; gap: 16px; }
+.form-row { display: flex; gap: 12px; }
 .form-row .form-group { min-width: 0; }
-.contact-hint { font-size: 0.76rem; color: var(--text-muted); margin: -10px 0 16px; }
-@media (max-width: 640px) { .form-row { flex-direction: column; } }
+.contact-hint { font-size: 0.76rem; color: var(--text-muted); margin: -6px 0 0; }
 textarea.form-input { resize: vertical; min-height: 100px; }
 .laporan-dropzone {
   border: 2px dashed var(--border-color);
   border-radius: var(--border-radius-md);
-  padding: 24px; text-align: center; cursor: pointer;
+  padding: 20px; text-align: center; cursor: pointer;
   transition: all 0.15s; background: var(--bg-tertiary);
 }
 .laporan-dropzone:hover, .laporan-dropzone.dragover {
   border-color: var(--primary-color);
   background: var(--primary-glow, rgba(46, 125, 116, 0.08));
 }
-.dropzone-icon { width: 30px; height: 30px; color: var(--primary-color); margin-bottom: 6px; }
+.dropzone-icon { width: 28px; height: 28px; color: var(--primary-color); margin-bottom: 6px; }
 .dropzone-text { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
 .image-preview-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-  gap: 12px; margin-top: 14px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px; margin-top: 12px; overflow-y: auto;
 }
 .image-preview-item {
   position: relative; border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm); overflow: hidden; background: var(--bg-tertiary);
 }
-.image-preview-item img { width: 100%; height: 80px; object-fit: cover; display: block; }
+.image-preview-item img { width: 100%; height: 70px; object-fit: cover; display: block; }
 .image-name {
   display: block; font-size: 0.65rem; color: var(--text-muted);
   padding: 4px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -327,13 +390,31 @@ textarea.form-input { resize: vertical; min-height: 100px; }
   display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .image-remove-btn i { width: 12px; height: 12px; }
+
 .laporan-status-msg {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 14px; border-radius: var(--border-radius-md);
-  font-size: 0.82rem; margin-bottom: 14px;
+  font-size: 0.82rem;
 }
 .laporan-status-msg i { width: 16px; height: 16px; flex-shrink: 0; }
 .laporan-status-msg.success { background: rgba(16,185,129,0.12); color: #10b981; }
 .laporan-status-msg.error { background: rgba(239,68,68,0.12); color: #ef4444; }
-.laporan-form-footer { display: flex; justify-content: flex-end; }
+
+.laporan-form-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 900px) {
+  .laporan-form-grid { grid-template-columns: 1fr; grid-template-rows: none; }
+  .laporan-col-main, .laporan-col-side { flex: none; }
+  .laporan-desc-textarea { min-height: 160px; }
+  .laporan-card { flex: none; }
+}
+@media (max-width: 640px) { .form-row { flex-direction: column; } }
 </style>
