@@ -21,6 +21,17 @@
  <i :data-lucide="theme === 'light' ? 'sun' : 'moon'"></i>
  </button>
 
+ <!-- Laporan -->
+ <button
+ :class="['icon-button', { 'icon-button-active': currentTab === 'report' }]"
+ id="laporan-btn"
+ title="Laporan"
+ aria-label="Laporan"
+ @click="currentTab = 'report'"
+ >
+ <i data-lucide="flag"></i>
+ </button>
+
  <!-- Notifications -->
  <div class="header-notifications" @click="showNotifMenu = !showNotifMenu" style="position:relative;cursor:pointer;">
  <button class="icon-button" id="notifications-btn" title="Notifikasi" aria-label="Notifikasi">

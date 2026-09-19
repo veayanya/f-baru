@@ -84,13 +84,6 @@
  <span v-if="!isMenuEnabled('petunjuk')" class="menu-off-badge">Nonaktif</span>
  </a>
  <a href="#"
- :class="['nav-item', { active: currentTab === 'report' }]"
- @click.prevent="selectTab('report')">
- <i data-lucide="bar-chart-2"></i>
- <span style="flex: 1;">Laporan</span>
- <span v-if="!isMenuEnabled('report')" class="menu-off-badge">Nonaktif</span>
- </a>
- <a href="#"
  :class="['nav-item', { active: currentTab === 'faq' }]"
  @click.prevent="selectTab('faq')">
  <i data-lucide="help-circle"></i>

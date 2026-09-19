@@ -759,6 +759,17 @@ h6 {
     background-color: var(--border-color);
 }
 
+.icon-button-active {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    box-shadow: none;
+}
+
+.icon-button-active:hover {
+    background-color: var(--primary-color);
+    opacity: 0.9;
+}
+
 .icon-button i {
     width: 18px;
     height: 18px;
