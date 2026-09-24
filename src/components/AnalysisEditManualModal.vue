@@ -437,43 +437,43 @@
 
               <div class="ae-grid-3">
                 <div class="ae-field">
-                  <label for="ae-dw">Deadweight (%)</label>
+                  <label for="ae-dw">Bobot Mati (%)</label>
                   <input id="ae-dw" v-model.number="draft.deadweight" type="number" min="0" max="100" step="0.1" class="form-input-sm" />
                   <span class="ae-hint">Outcome tanpa intervensi</span>
                 </div>
                 <div class="ae-field">
-                  <label for="ae-attr">Attribution (%)</label>
+                  <label for="ae-attr">Atribusi (%)</label>
                   <input id="ae-attr" v-model.number="draft.attribution" type="number" min="0" max="100" step="0.1" class="form-input-sm" />
                   <span class="ae-hint">Kontribusi pihak lain</span>
                 </div>
                 <div class="ae-field">
-                  <label for="ae-disp">Displacement (%)</label>
+                  <label for="ae-disp">Pergeseran Manfaat (%)</label>
                   <input id="ae-disp" v-model.number="draft.displacement" type="number" min="0" max="100" step="0.1" class="form-input-sm" />
                   <span class="ae-hint">Pengurangan manfaat lain</span>
                 </div>
                 <div class="ae-field">
-                  <label for="ae-drop">Drop-off (%)</label>
+                  <label for="ae-drop">Penyusutan (%)</label>
                   <input id="ae-drop" v-model.number="draft.dropOff" type="number" min="0" max="100" step="0.1" class="form-input-sm" />
                   <span class="ae-hint">Penurunan multi-tahun</span>
                 </div>
                 <div class="ae-field">
-                  <label for="ae-disc">Discount Rate (%)</label>
+                  <label for="ae-disc">Tingkat Diskonto (%)</label>
                   <input id="ae-disc" v-model.number="draft.discountRate" type="number" min="0" max="100" step="0.1" class="form-input-sm" />
                   <span class="ae-hint">Diskonto masa depan</span>
                 </div>
                 <div class="ae-field">
                   <label for="ae-dur">Durasi Manfaat (tahun)</label>
                   <input id="ae-dur" v-model.number="draft.benefitDurationYears" type="number" min="1" max="20" step="1" class="form-input-sm" />
-                  <span class="ae-hint">Drop-off &amp; diskonto berlaku bila &gt; 1 tahun</span>
+                  <span class="ae-hint">Penyusutan &amp; diskonto berlaku bila &gt; 1 tahun</span>
                 </div>
               </div>
 
               <div class="ae-field" style="margin-top:8px;">
-                <label for="ae-attr-reason">Alasan Attribution</label>
+                <label for="ae-attr-reason">Alasan Atribusi</label>
                 <textarea id="ae-attr-reason" v-model="draft.attributionReason" class="form-input" rows="2"></textarea>
               </div>
               <div class="ae-field">
-                <label for="ae-disp-reason">Alasan Displacement</label>
+                <label for="ae-disp-reason">Alasan Pergeseran Manfaat</label>
                 <textarea id="ae-disp-reason" v-model="draft.displacementReason" class="form-input" rows="2"></textarea>
               </div>
             </section>
@@ -535,7 +535,7 @@
             </div>
             <div class="ae-kv"><span>Nilai Input</span><span>{{ formatRp(sroiNow.valueOfInputs) }}</span></div>
             <div class="ae-kv"><span>Nilai Dampak</span><span>{{ formatRp(sroiNow.totalNilaiDampak) }}</span></div>
-            <div class="ae-kv"><span>Setelah Deadweight</span><span>{{ formatRp(sroiNow.dampakSetelahDeadweight) }}</span></div>
+            <div class="ae-kv"><span>Setelah Bobot Mati</span><span>{{ formatRp(sroiNow.dampakSetelahDeadweight) }}</span></div>
             <div class="ae-kv"><span>Dampak Bersih</span><span>{{ formatRp(sroiNow.netImpact) }}</span></div>
             <div class="ae-kv"><span>PV Dampak</span><span>{{ formatRp(sroiNow.pvImpact) }}</span></div>
             <p class="ae-hint" style="margin-top:10px;">{{ sroiNow.sroiInterpretation }}</p>

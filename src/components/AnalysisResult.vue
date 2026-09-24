@@ -525,30 +525,30 @@
  <div class="sroi-factors-title"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:5px;"><line x1="4" y1="6" x2="20" y2="6" stroke="#1B4D46" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="12" x2="14" y2="12" stroke="#1B4D46" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="18" x2="17" y2="18" stroke="#1B4D46" stroke-width="2" stroke-linecap="round"/><circle cx="18" cy="6" r="2" fill="#1B4D46"/><circle cx="17" cy="12" r="2" fill="#1B4D46"/><circle cx="20" cy="18" r="2" fill="#1B4D46"/></svg> Faktor Penyesuaian Dampak Sosial</div>
  <div class="sroi-factors-grid">
  <div class="sroi-factor-item">
- <span class="factor-name">Deadweight</span>
+ <span class="factor-name">Bobot Mati</span>
  <span class="factor-val">{{ sroiMetrics.deadweight }}%</span>
  <span class="factor-hint">Outcome tanpa intervensi</span>
  <span v-if="sroiGapExplanation" class="factor-loss">− {{ formatRupiah(sroiGapExplanation.lossDeadweight) }}</span>
  </div>
  <div class="sroi-factor-item">
- <span class="factor-name">Attribution</span>
+ <span class="factor-name">Atribusi</span>
  <span class="factor-val">{{ sroiMetrics.attribution }}%</span>
  <span class="factor-hint">{{ analysis.attributionReason || 'Kontribusi pihak lain' }}</span>
  <span v-if="sroiGapExplanation" class="factor-loss">− {{ formatRupiah(sroiGapExplanation.lossAttribution) }}</span>
  </div>
  <div class="sroi-factor-item">
- <span class="factor-name">Displacement</span>
+ <span class="factor-name">Pergeseran Manfaat</span>
  <span class="factor-val">{{ sroiMetrics.displacement }}%</span>
  <span class="factor-hint">{{ analysis.displacementReason || 'Pengurangan manfaat lain' }}</span>
  <span v-if="sroiGapExplanation" class="factor-loss">− {{ formatRupiah(sroiGapExplanation.lossDisplacement) }}</span>
  </div>
  <div class="sroi-factor-item">
- <span class="factor-name">Drop-off</span>
+ <span class="factor-name">Penyusutan</span>
  <span class="factor-val">{{ sroiMetrics.dropOff }}%</span>
  <span class="factor-hint">{{ sroiMetrics.durationYears > 1 ? 'Penurunan multi-tahun' : 'Tidak berlaku (durasi manfaat 1 thn)' }}</span>
  </div>
  <div class="sroi-factor-item">
- <span class="factor-name">Discount Rate</span>
+ <span class="factor-name">Tingkat Diskonto</span>
  <span class="factor-val">{{ sroiMetrics.discountRate }}%</span>
  <span class="factor-hint">{{ sroiMetrics.durationYears > 1 ? 'Diskonto masa depan' : 'Tidak berlaku (durasi manfaat 1 thn)' }}</span>
  </div>
@@ -580,7 +580,7 @@
  <div class="flow-step">
  <div class="step-num">3</div>
  <div class="step-body">
- <div class="step-title">− Deadweight ({{ sroiMetrics.deadweight }}%)</div>
+ <div class="step-title">− Bobot Mati ({{ sroiMetrics.deadweight }}%)</div>
  <div class="step-val">{{ formatRupiah(sroiMetrics.dampakSetelahDeadweight) }}</div>
  </div>
  </div>
@@ -588,7 +588,7 @@
  <div class="flow-step">
  <div class="step-num">4</div>
  <div class="step-body">
- <div class="step-title">− Attribution ({{ sroiMetrics.attribution }}%)</div>
+ <div class="step-title">− Atribusi ({{ sroiMetrics.attribution }}%)</div>
  <div class="step-val">{{ formatRupiah(sroiMetrics.dampakSetelahAttribution) }}</div>
  </div>
  </div>
@@ -596,7 +596,7 @@
  <div class="flow-step">
  <div class="step-num">5</div>
  <div class="step-body">
- <div class="step-title">− Displacement ({{ sroiMetrics.displacement }}%)</div>
+ <div class="step-title">− Pergeseran Manfaat ({{ sroiMetrics.displacement }}%)</div>
  <div class="step-val">{{ formatRupiah(sroiMetrics.dampakSetelahDisplacement) }}</div>
  </div>
  </div>
@@ -627,14 +627,14 @@
  </div>
  </div>
 
- <!-- Rincian Drop-off & Diskonto per Tahun (jika durasi manfaat > 1 tahun) -->
+ <!-- Rincian Penyusutan & Diskonto per Tahun (jika durasi manfaat > 1 tahun) -->
  <div v-if="sroiMetrics.yearlyBreakdown && sroiMetrics.yearlyBreakdown.length > 1" class="sroi-yearly-table-wrap">
- <div class="sroi-yearly-title">Rincian Drop-off &amp; Diskonto Multi-Tahun</div>
+ <div class="sroi-yearly-title">Rincian Penyusutan &amp; Diskonto Multi-Tahun</div>
  <table class="sroi-yearly-table">
  <thead>
  <tr>
  <th>Tahun ke-</th>
- <th>Dampak Bersih (setelah Drop-off {{ sroiMetrics.dropOff }}%)</th>
+ <th>Dampak Bersih (setelah Penyusutan {{ sroiMetrics.dropOff }}%)</th>
  <th>Nilai Sekarang (didiskonto {{ sroiMetrics.discountRate }}%)</th>
  </tr>
  </thead>
@@ -689,22 +689,22 @@
  </p>
  <ul class="sroi-gap-list">
  <li v-if="sroiGapExplanation.lossDeadweight > 0">
- <span class="gap-label">Deadweight ({{ sroiMetrics.deadweight }}%)</span>
+ <span class="gap-label">Bobot Mati ({{ sroiMetrics.deadweight }}%)</span>
  <span class="gap-val">− {{ formatRupiah(sroiGapExplanation.lossDeadweight) }}</span>
  <span class="gap-note">— estimasi outcome yang akan tetap terjadi meski tanpa program ini, sehingga tidak dihitung sebagai dampak program.</span>
  </li>
  <li v-if="sroiGapExplanation.lossAttribution > 0">
- <span class="gap-label">Attribution ({{ sroiMetrics.attribution }}%)</span>
+ <span class="gap-label">Atribusi ({{ sroiMetrics.attribution }}%)</span>
  <span class="gap-val">− {{ formatRupiah(sroiGapExplanation.lossAttribution) }}</span>
  <span class="gap-note">— porsi dampak yang turut disumbang pihak/program lain, bukan murni dari kegiatan ini.{{ analysis.attributionReason ? ' ' + analysis.attributionReason : '' }}</span>
  </li>
  <li v-if="sroiGapExplanation.lossDisplacement > 0">
- <span class="gap-label">Displacement ({{ sroiMetrics.displacement }}%)</span>
+ <span class="gap-label">Pergeseran Manfaat ({{ sroiMetrics.displacement }}%)</span>
  <span class="gap-val">− {{ formatRupiah(sroiGapExplanation.lossDisplacement) }}</span>
  <span class="gap-note">— manfaat lain yang tergeser/hilang akibat program ini.{{ analysis.displacementReason ? ' ' + analysis.displacementReason : '' }}</span>
  </li>
  <li v-if="sroiGapExplanation.lossDropOffDiscount > 0">
- <span class="gap-label">Drop-off &amp; Diskonto Multi-Tahun</span>
+ <span class="gap-label">Penyusutan &amp; Diskonto Multi-Tahun</span>
  <span class="gap-val">− {{ formatRupiah(sroiGapExplanation.lossDropOffDiscount) }}</span>
  <span class="gap-note">— penyusutan dampak di tahun-tahun berikutnya serta nilai waktu uang (diskonto {{ sroiMetrics.discountRate }}%).</span>
  </li>
@@ -713,7 +713,7 @@
  Total nilai yang tereduksi dari seluruh faktor: <strong>{{ formatRupiah(sroiGapExplanation.totalLoss) }}</strong>. Karena PV Dampak ({{ formatRupiah(sroiMetrics.pvImpact) }}) masih lebih kecil dari Nilai Input ({{ formatRupiah(sroiMetrics.valueOfInputs) }}), masih ada selisih <strong>{{ formatRupiah(sroiGapExplanation.shortfall) }}</strong> agar rasio mencapai 1,0.
  </p>
  <p class="sroi-gap-suggestion">
- Angka ini bukan dikurangi secara sepihak — semua persentase (Deadweight, Attribution, Displacement) berasal dari estimasi/justifikasi program itu sendiri dan bisa disesuaikan lewat menu <em>edit manual</em> bila Anda memiliki data pendukung yang lebih kuat (mis. Deadweight lebih rendah karena tanpa program ini outcome benar-benar tidak akan terjadi). Alternatif lain adalah memperbesar estimasi Total Nilai Dampak Sosial, kira-kira perlu tambahan sekitar {{ formatRupiah(sroiGapExplanation.additionalDampakNeeded) }} pada estimasi awal (sebelum potongan) agar PV Dampak menyamai Nilai Input — dengan asumsi persentase potongan yang sama.
+ Angka ini bukan dikurangi secara sepihak — semua persentase (Bobot Mati, Atribusi, Pergeseran Manfaat) berasal dari estimasi/justifikasi program itu sendiri dan bisa disesuaikan lewat menu <em>edit manual</em> bila Anda memiliki data pendukung yang lebih kuat (mis. Bobot Mati lebih rendah karena tanpa program ini outcome benar-benar tidak akan terjadi). Alternatif lain adalah memperbesar estimasi Total Nilai Dampak Sosial, kira-kira perlu tambahan sekitar {{ formatRupiah(sroiGapExplanation.additionalDampakNeeded) }} pada estimasi awal (sebelum potongan) agar PV Dampak menyamai Nilai Input — dengan asumsi persentase potongan yang sama.
  </p>
  </div>
  </div>
@@ -1123,7 +1123,7 @@ const sroiGapExplanation = computed(() => {
 
  // Estimasi tambahan Total Nilai Dampak (sebelum potongan) yang dibutuhkan
  // agar PV Dampak menyamai Nilai Input, dengan asumsi persentase
- // Deadweight/Attribution/Displacement tetap sama seperti sekarang.
+ // Bobot Mati/Atribusi/Pergeseran Manfaat tetap sama seperti sekarang.
  const retentionFactor = m.totalNilaiDampak > 0
  ? (m.pvImpact / m.totalNilaiDampak)
  : 0;
@@ -2326,7 +2326,7 @@ const copyJson = async () => {
  flex-shrink: 0;
 }
 
-/* ══════ Rincian Multi-Tahun (Drop-off & Diskonto) ══════ */
+/* ══════ Rincian Multi-Tahun (Penyusutan & Diskonto) ══════ */
 .sroi-yearly-table-wrap {
  margin-top: 16px;
  padding-top: 14px;
