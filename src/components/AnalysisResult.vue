@@ -46,11 +46,11 @@
  </button>
  <button
  class="btn btn-secondary btn-sm"
- :disabled="isMuatUlang || !canMuatUlangPdf"
+ :disabled="isMuatUlang"
  @click="handleMuatUlangPdf"
- :title="canMuatUlangPdf ? 'Generate ulang analisis AI dari teks PDF yang tersimpan (tanpa unggah PDF lagi)' : 'Dokumen lama: gunakan Unggah Ulang PDF sekali agar tombol ini bisa dipakai'"
+ title="Generate ulang analisis AI tanpa unggah PDF lagi"
  style="display: flex; align-items: center; gap: 5px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: #0284c7; background: #f0f9ff; border-color: #bae6fd;"
- :style="(isMuatUlang || !canMuatUlangPdf) ? 'opacity:0.6; cursor:not-allowed;' : ''"
+ :style="isMuatUlang ? 'opacity:0.6; cursor:not-allowed;' : ''"
  >
  <i :data-lucide="isMuatUlang ? 'loader-2' : 'rotate-cw'" :class="{ 'spin-anim': isMuatUlang }" style="width:14px;height:14px;"></i>
  {{ isMuatUlang ? (muatUlangText || 'Memuat ulang…') : 'Muat Ulang PDF' }}
@@ -921,12 +921,14 @@ const canMuatUlangPdf = computed(() => {
 
 const handleMuatUlangPdf = async () => {
   const id = props.analysis?.id;
-  if (!id || isMuatUlang.value || !canMuatUlangPdf.value) return;
+  if (!id || isMuatUlang.value) return;
+  const useFallback = !canMuatUlangPdf.value;
+  if (useFallback && !confirm('Teks PDF asli dokumen ini belum tersimpan (dokumen lama).\n\nAI akan menganalisis ulang berdasarkan HASIL ANALISIS yang sudah ada, bukan dari PDF asli, sehingga bisa kurang akurat. Untuk hasil terbaik gunakan "Unggah Ulang PDF".\n\nLanjutkan Muat Ulang PDF?')) return;
   isMuatUlang.value = true;
   muatUlangText.value = 'Menyiapkan…';
   try {
     // saveManualVersion di dalamnya otomatis memuat ulang analisis aktif → halaman & grafik langsung berubah
-    await regenerateDocFromStoredText(id, (_prog, text) => { muatUlangText.value = text; });
+    await regenerateDocFromStoredText(id, (_prog, text) => { muatUlangText.value = text; }, { allowFallback: useFallback });
   } catch (err) {
     console.error('Muat Ulang PDF gagal:', err);
     alert('Gagal Muat Ulang PDF: ' + (err.message || 'Terjadi kesalahan'));

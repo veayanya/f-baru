@@ -260,8 +260,7 @@
  <button
  class="arsip-more-menu-item"
  style="display:flex; align-items:center; gap:8px; width:100%; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border-color,#eee); cursor:pointer; font-size:0.82rem; color:#0284c7; text-align:left;"
- :style="!item.hasSourceText ? 'opacity:0.5; cursor:not-allowed;' : ''"
- :title="item.hasSourceText ? 'Generate ulang analisis AI dari teks PDF yang tersimpan (tanpa unggah PDF)' : 'Dokumen lama: gunakan Unggah Ulang PDF sekali agar tombol ini bisa dipakai'"
+ title="Generate ulang analisis AI tanpa unggah PDF"
  @click="handleMuatUlangPdf(item)"
  >
  <i data-lucide="rotate-cw" style="width:15px;height:15px; color:#0284c7; flex-shrink:0;"></i>
@@ -811,16 +810,14 @@ const muatUlangText = ref('');
 const handleMuatUlangPdf = async (item) => {
   closeMoreMenu();
   if (muatUlangId.value) return;
-  if (!item.hasSourceText) {
-    alert('Dokumen ini dibuat sebelum fitur Muat Ulang PDF ada, jadi teks PDF-nya belum tersimpan.\nGunakan tombol "Unggah Ulang PDF" (ikon panah melingkar) sekali; setelah itu Muat Ulang PDF bisa dipakai.');
-    return;
-  }
+  const useFallback = !item.hasSourceText;
+  if (useFallback && !confirm('Teks PDF asli dokumen ini belum tersimpan (dokumen lama).\n\nAI akan menganalisis ulang berdasarkan HASIL ANALISIS yang sudah ada, bukan dari PDF asli, sehingga bisa kurang akurat. Untuk hasil terbaik gunakan "Unggah Ulang PDF".\n\nLanjutkan Muat Ulang PDF?')) return;
   muatUlangId.value = item.id;
   muatUlangText.value = 'Menyiapkan…';
   try {
     const updated = await regenerateDocFromStoredText(item.id, (_prog, text) => {
       muatUlangText.value = text;
-    });
+    }, { allowFallback: useFallback });
     if (updated) loadHistoricalDocIntoAnalyzer(updated);
   } catch (err) {
     console.error('Muat Ulang PDF gagal:', err);

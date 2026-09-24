@@ -2179,26 +2179,66 @@ async function reanalyzeDocWithPdf(targetId, file, onProgress = () => { }) {
   return updatedDoc;
 }
 
+// Susun teks dari hasil analisis yang sudah tersimpan (dipakai HANYA bila teks PDF asli
+// belum pernah tersimpan, mis. dokumen lama). Tiap nilai dipotong agar field yang
+// terlanjur berisi teks PDF panjang/kacau tidak membanjiri AI.
+function buildTextFromSavedAnalysis(doc) {
+  const clip = (v, n = 1500) => String(v ?? '-').replace(/\s+/g, ' ').trim().slice(0, n) || '-';
+  const lines = [
+    `OPD/Perangkat Daerah: ${clip(doc.opd || doc.perangkatDaerah, 300)}`,
+    `Program: ${clip(doc.program || doc.namaProgram, 400)}`,
+    `Kegiatan: ${clip(doc.kegiatan || doc.namaKegiatan, 400)}`,
+    `Sub Kegiatan: ${clip(doc.subKegiatan, 400)}`,
+    `Tahun Rencana: ${clip(doc.tahunRencana || doc.tahun, 20)}`,
+    `Pagu Anggaran: ${Number(doc.pagu) || 0}`,
+    `Target Kuantitatif: ${clip(doc.targetKuantitatif || doc.target, 400)}`,
+    `Deskripsi Outcome: ${clip(doc.justifikasiOutcome || doc.outcomeDesc)}`,
+    `Lokasi: ${clip(doc.lokasi, 300)}`,
+    `Sumber Dana: ${clip(doc.sumberDana, 200)}`
+  ];
+  if (Array.isArray(doc.anggaranTahunan) && doc.anggaranTahunan.length) {
+    lines.push('Anggaran per Tahun:');
+    doc.anggaranTahunan.forEach(a => lines.push(`- ${a.tahun}: ${a.jumlah}`));
+  }
+  if (Array.isArray(doc.rekeningProporsi) && doc.rekeningProporsi.length) {
+    lines.push('Rincian Rekening Belanja:');
+    doc.rekeningProporsi.forEach(r => lines.push(`- ${clip(r.kode, 40)} ${clip(r.nama, 200)}: ${r.nilai || 0} (${r.persen || 0}%)`));
+  }
+  if (Array.isArray(doc.indikatorKinerja) && doc.indikatorKinerja.length) {
+    lines.push('Indikator Kinerja:');
+    doc.indikatorKinerja.forEach(i => lines.push(`- ${clip(i.level, 60)}: ${clip(i.tolok_ukur || i.tolokUkur, 200)} → ${clip(i.target, 100)}`));
+  }
+  return lines.join('\n');
+}
+
 // ── Muat Ulang PDF ───────────────────────────────────────────────────
 // Analisis AI dijalankan ulang memakai teks PDF yang SUDAH tersimpan di server —
 // pengguna tidak perlu mengunggah PDF lagi. Hasilnya disimpan sebagai versi baru
 // (versi lama tetap ada di riwayat) dan langsung dikembalikan untuk ditampilkan.
-async function regenerateDocFromStoredText(targetId, onProgress = () => { }) {
+async function regenerateDocFromStoredText(targetId, onProgress = () => { }, { allowFallback = false } = {}) {
   const existingDoc = state.rkis.find(r => r.id === targetId);
   if (!existingDoc) throw new Error('Dokumen tidak ditemukan di arsip.');
 
   onProgress(10, 'Mengambil teks PDF yang tersimpan...');
+  let sourceText = '';
+  let usedFallback = false;
   const srcRes = await apiFetch(`/api/v1/rkis/${encodeURIComponent(targetId)}/source-text`, {
     credentials: 'include'
   });
   const src = await srcRes.json().catch(() => ({}));
-  if (!srcRes.ok || !src.text) {
+  if (srcRes.ok && src.text) {
+    sourceText = src.text;
+  } else if (allowFallback && (srcRes.status === 404 || srcRes.status === 409)) {
+    // Teks PDF asli belum tersimpan (dokumen lama) → pakai data hasil analisis yang ada.
+    sourceText = buildTextFromSavedAnalysis(existingDoc);
+    usedFallback = true;
+  } else {
     throw new Error(src.error || `Teks PDF tersimpan tidak tersedia (${srcRes.status}).`);
   }
 
   onProgress(40, 'Layanan AI sedang mengevaluasi ulang SROI...');
   const analysisObj = await processWithAIService(
-    src.text,
+    sourceText,
     existingDoc.namaDokumen,
     existingDoc.ukuranFile || existingDoc.ukuranBerkas || 0
   );
@@ -2225,7 +2265,9 @@ async function regenerateDocFromStoredText(targetId, onProgress = () => { }) {
   onProgress(85, 'Menyimpan hasil sebagai versi baru...');
   const result = await saveManualVersion(targetId, {
     parentVersionId: existingDoc.activeVersionId,
-    changesSummary: 'Analisis AI dijalankan ulang dari teks PDF yang tersimpan (Muat Ulang PDF).',
+    changesSummary: usedFallback
+      ? 'Analisis AI dijalankan ulang dari data hasil analisis sebelumnya (teks PDF asli belum tersimpan) — Muat Ulang PDF.'
+      : 'Analisis AI dijalankan ulang dari teks PDF yang tersimpan (Muat Ulang PDF).',
     data: analysisObj,
     createdBy: currentUser.value?.name || currentUser.value?.username || 'User',
     source: 'muat-ulang-pdf'
