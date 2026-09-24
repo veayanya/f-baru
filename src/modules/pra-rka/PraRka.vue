@@ -15,27 +15,22 @@
     </div>
 
     <!-- ── Konten ─────────────────────────────────────────────────── -->
-    <BeritaAcaraRenja v-if="activeMenu === 'berita-acara'" />
-
-    <!-- Placeholder untuk menu lain yang akan dikembangkan -->
-    <div v-else class="pra-rka-placeholder">
-      <i class="fa-solid fa-tools" style="font-size:2rem; opacity:.35;"></i>
-      <p>Modul <strong>{{ menus.find(m => m.id === activeMenu)?.label }}</strong> sedang dalam pengembangan.</p>
-    </div>
+    <BeritaAcaraRenja      v-if="activeMenu === 'ranwal'" />
+    <BeritaAcaraRenjaAkhir v-else-if="activeMenu === 'ranakhir'" />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import BeritaAcaraRenja from './components/BeritaAcaraRenja.vue';
+import BeritaAcaraRenja      from './components/BeritaAcaraRenja.vue';
+import BeritaAcaraRenjaAkhir from './components/BeritaAcaraRenjaAkhir.vue';
 
 const menus = [
-  { id: 'berita-acara', label: 'Berita Acara Verifikasi Renja PD', icon: 'fa-file-contract' },
-  { id: 'formulir-renja', label: 'Formulir Renja PD', icon: 'fa-table-list' },
-  { id: 'kesesuaian-rkpd', label: 'Kesesuaian RKPD', icon: 'fa-check-double' },
+  { id: 'ranwal',   label: 'BA Verifikasi Rancangan Awal Renja PD',  icon: 'fa-file-contract' },
+  { id: 'ranakhir', label: 'BA Verifikasi Rancangan Akhir Renja PD', icon: 'fa-file-circle-check' },
 ];
 
-const activeMenu = ref('berita-acara');
+const activeMenu = ref('ranwal');
 </script>
 
 <style scoped>
@@ -70,18 +65,5 @@ const activeMenu = ref('berita-acara');
   background: var(--primary-color);
   color: #fff;
   border-color: var(--primary-color);
-}
-
-.pra-rka-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 60px 20px;
-  text-align: center;
-  color: var(--text-secondary);
-  background: var(--bg-secondary);
-  border: 1px dashed var(--border-color);
-  border-radius: var(--card-border-radius);
 }
 </style>
