@@ -346,7 +346,7 @@ async function downloadFullBackupJson() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `sintra_backup_full_${new Date().toISOString().slice(0, 10)}.json`);
+    downloadAnchorNode.setAttribute("download", `asidara_backup_full_${new Date().toISOString().slice(0, 10)}.json`);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -423,7 +423,7 @@ async function downloadUserBackupJson() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `sintra_backup_${username}_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `asidara_backup_${username}_${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -432,6 +432,38 @@ async function downloadUserBackupJson() {
     showNotification("Backup Berhasil", `${total} dokumen RKA milik akun Anda berhasil diunduh dalam satu berkas JSON.`, "success");
   } catch (err) {
     showNotification("Gagal Mengunduh Data", err.message, "danger");
+  }
+}
+
+/**
+ * Backup OTOMATIS — dipanggil diam-diam setiap kali sebuah dokumen RKA
+ * selesai diunggah (lihat pemanggilannya di handleRkaFiles), tanpa perlu
+ * pengguna menekan tombol backup manual. Mengunduh SATU berkas .json berisi
+ * seluruh dokumen RKA milik akun yang sedang login, dengan nama berkas
+ * "asidara_backup_...". Kegagalan tidak ditampilkan sebagai error ke
+ * pengguna (proses unggah utama sudah dianggap berhasil) — cukup dicatat
+ * di console agar tidak mengganggu alur unggah.
+ */
+async function autoBackupOnUpload() {
+  try {
+    const res = await apiFetch('/api/v1/backup/export-user');
+    if (!res.ok) return;
+    const data = await res.json();
+    const total = (data.rkis || data.data?.main_db?.rkis || []).length;
+    if (total === 0) return;
+
+    const username = currentUser.value?.username || 'user';
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `asidara_backup_${username}_${new Date().toISOString().slice(0, 10)}_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (err) {
+    console.warn('[Backup Otomatis] Gagal membuat backup otomatis setelah unggah:', err);
   }
 }
 
@@ -1415,6 +1447,10 @@ async function handleRkaFiles(files) {
           }
           updateProgressBar(100, 'Selesai diproses', queueItem);
           queueItem.status = 'done';
+          // Backup otomatis setiap kali ada dokumen baru berhasil diunggah —
+          // tidak menunggu (fire-and-forget) supaya tidak memperlambat
+          // tampilan progress bar ke pengguna.
+          autoBackupOnUpload();
         } else {
           const errData = await res.json().catch(() => ({}));
           throw new Error(errData.error || `Server menolak penyimpanan (${res.status})`);
