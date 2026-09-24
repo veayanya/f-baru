@@ -542,6 +542,7 @@ async function restoreTrashBulk(ids) {
 
   let restored = [];
   let failed = [];
+  let renamedCount = 0;
 
   try {
     const res = await apiFetch('/api/v1/trash/bulk-restore', {
@@ -563,6 +564,7 @@ async function restoreTrashBulk(ids) {
       if (!res.ok) throw new Error(data.error || `Server menjawab ${res.status}`);
       restored = data.restored || [];
       failed = data.forbidden || [];
+      renamedCount = (data.renamed || []).length;
     }
   } catch (err) {
     console.error(err);
@@ -573,7 +575,8 @@ async function restoreTrashBulk(ids) {
   if (restored.length > 0) await refreshArsip();
 
   if (restored.length > 0 && failed.length === 0) {
-    showNotification('Dokumen Dipulihkan', `${restored.length} dokumen berhasil dikembalikan dari sampah ke arsip.`, 'success');
+    const note = renamedCount > 0 ? ` ${renamedCount} dokumen diberi ID baru karena ID lamanya sudah dipakai dokumen lain.` : '';
+    showNotification('Dokumen Dipulihkan', `${restored.length} dokumen berhasil dikembalikan dari sampah ke arsip.${note}`, 'success');
   } else if (restored.length > 0) {
     showNotification('Sebagian Dokumen Dipulihkan', `${restored.length} dokumen dikembalikan, ${failed.length} gagal (tidak ada izin atau kesalahan server).`, 'warning');
   } else if (failed.length > 0) {
@@ -617,17 +620,20 @@ async function restoreDatabase(payload) {
     const res = await apiFetch('/api/v1/backup/restore', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(jsonPayload)
+      body: JSON.stringify(jsonPayload),
+      timeoutMs: 120000 // berkas backup besar + server gratis yang lambat bangun: 30 dtk bawaan terlalu singkat
     });
-    const result = await res.json();
-    if (!res.ok || result.error) throw new Error(result.error || 'Gagal memulihkan database.');
+    // Balasan bukan JSON (mis. error dari proxy) tetap menampilkan kode HTTP-nya, bukan "Unexpected token <".
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok || result.error) throw new Error(result.error || `Server menjawab ${res.status}.`);
 
     // Refresh RKA data
     await refreshArsip();
     showNotification("Pemulihan Berhasil", result.message || "Database berhasil dipulihkan.", "success");
     return true;
   } catch (err) {
-    showNotification("Gagal Memulihkan Database", err.message, "danger");
+    const msg = err?.name === 'AbortError' ? 'Server tidak merespons (waktu habis). Coba lagi beberapa saat lagi.' : err.message;
+    showNotification("Gagal Memulihkan Database", msg, "danger");
     return false;
   }
 }
