@@ -437,7 +437,7 @@
 
               <div class="ae-grid-3">
                 <div class="ae-field">
-                  <label for="ae-dw">Bobot Mati (%)</label>
+                  <label for="ae-dw">Kerugian Bobot (%)</label>
                   <input id="ae-dw" v-model.number="draft.deadweight" type="number" min="0" max="100" step="0.1" class="form-input-sm" />
                   <span class="ae-hint">Outcome tanpa intervensi</span>
                 </div>
@@ -535,9 +535,9 @@
             </div>
             <div class="ae-kv"><span>Nilai Input</span><span>{{ formatRp(sroiNow.valueOfInputs) }}</span></div>
             <div class="ae-kv"><span>Nilai Dampak</span><span>{{ formatRp(sroiNow.totalNilaiDampak) }}</span></div>
-            <div class="ae-kv"><span>Setelah Bobot Mati</span><span>{{ formatRp(sroiNow.dampakSetelahDeadweight) }}</span></div>
+            <div class="ae-kv"><span>Setelah Kerugian Bobot</span><span>{{ formatRp(sroiNow.dampakSetelahDeadweight) }}</span></div>
             <div class="ae-kv"><span>Dampak Bersih</span><span>{{ formatRp(sroiNow.netImpact) }}</span></div>
-            <div class="ae-kv"><span>PV Dampak</span><span>{{ formatRp(sroiNow.pvImpact) }}</span></div>
+            <div class="ae-kv"><span>Dampak Nilai Sekarang</span><span>{{ formatRp(sroiNow.pvImpact) }}</span></div>
             <p class="ae-hint" style="margin-top:10px;">{{ sroiNow.sroiInterpretation }}</p>
           </aside>
         </div>

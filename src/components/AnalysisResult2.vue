@@ -92,7 +92,7 @@
  <div class="stat-value positive">{{ formatRupiah(sroiMetrics.netImpact) }}</div>
  </div>
  <div class="sroi-stat-card">
- <div class="stat-label">Nilai Sekarang Dampak</div>
+ <div class="stat-label">Dampak Nilai Sekarang</div>
  <div class="stat-value positive">{{ formatRupiah(sroiMetrics.pvImpact) }}</div>
  </div>
  </div>
@@ -102,7 +102,7 @@
  <div class="sroi-factors-title"> Faktor Penyesuaian Dampak Sosial</div>
  <div class="sroi-factors-grid">
  <div class="sroi-factor-item">
- <span class="factor-name">Bobot Mati</span>
+ <span class="factor-name">Kerugian Bobot</span>
  <span class="factor-val">{{ sroiMetrics.deadweight }}%</span>
  <span v-if="sroiGapExplanation" class="factor-loss">− {{ formatRupiah(sroiGapExplanation.lossDeadweight) }}</span>
  </div>
@@ -151,7 +151,7 @@
  <div class="flow-arrow">→</div>
  <div class="flow-step">
  <div class="step-num">3</div>
- <div class="step-title">− Bobot Mati ({{ sroiMetrics.deadweight }}%)</div>
+ <div class="step-title">− Kerugian Bobot ({{ sroiMetrics.deadweight }}%)</div>
  <div class="step-val">{{ formatRupiah(sroiMetrics.dampakSetelahDeadweight) }}</div>
  </div>
  <div class="flow-arrow">→</div>
@@ -175,7 +175,7 @@
  <div class="flow-arrow">→</div>
  <div class="flow-step">
  <div class="step-num">7</div>
- <div class="step-title">PV Dampak ({{ sroiMetrics.durationYears }} thn)</div>
+ <div class="step-title">Dampak Nilai Sekarang ({{ sroiMetrics.durationYears }} thn)</div>
  <div class="step-val">{{ formatRupiah(sroiMetrics.pvImpact) }}</div>
  </div>
  <div class="flow-arrow">→</div>
@@ -206,7 +206,7 @@
  </tbody>
  <tfoot>
  <tr>
- <td colspan="2">Total PV Dampak</td>
+ <td colspan="2">Total Dampak Nilai Sekarang</td>
  <td>{{ formatRupiah(sroiMetrics.pvImpact) }}</td>
  </tr>
  </tfoot>
@@ -244,11 +244,11 @@
  <div v-if="sroiGapExplanation && sroiGapExplanation.isBelowLayak" class="sroi-gap-box">
  <div class="sroi-gap-title">Kenapa belum masuk kategori "Layak" (≥ 1,0)?</div>
  <p class="sroi-gap-desc">
- Dari Total Nilai Dampak Sosial {{ formatRupiah(sroiMetrics.totalNilaiDampak) }}, berikut rincian nilai yang tereduksi di tiap tahap sampai menjadi PV Dampak {{ formatRupiah(sroiMetrics.pvImpact) }}:
+ Dari Total Nilai Dampak Sosial {{ formatRupiah(sroiMetrics.totalNilaiDampak) }}, berikut rincian nilai yang tereduksi di tiap tahap sampai menjadi Dampak Nilai Sekarang {{ formatRupiah(sroiMetrics.pvImpact) }}:
  </p>
  <ul class="sroi-gap-list">
  <li v-if="sroiGapExplanation.lossDeadweight > 0">
- <span class="gap-label">Bobot Mati ({{ sroiMetrics.deadweight }}%)</span>
+ <span class="gap-label">Kerugian Bobot ({{ sroiMetrics.deadweight }}%)</span>
  <span class="gap-val">− {{ formatRupiah(sroiGapExplanation.lossDeadweight) }}</span>
  <span class="gap-note">— outcome yang tetap terjadi meski tanpa program ini.</span>
  </li>
@@ -272,7 +272,7 @@
  Total nilai tereduksi: <strong>{{ formatRupiah(sroiGapExplanation.totalLoss) }}</strong>. Selisih menuju rasio 1,0: <strong>{{ formatRupiah(sroiGapExplanation.shortfall) }}</strong>.
  </p>
  <p class="sroi-gap-suggestion">
- Persentase Bobot Mati/Atribusi/Pergeseran Manfaat bisa disesuaikan lewat menu edit manual bila ada data pendukung yang lebih kuat. Alternatifnya, perlu tambahan sekitar {{ formatRupiah(sroiGapExplanation.additionalDampakNeeded) }} pada estimasi Total Nilai Dampak Sosial (sebelum potongan) agar PV Dampak menyamai Nilai Input.
+ Persentase Kerugian Bobot/Atribusi/Pergeseran Manfaat bisa disesuaikan lewat menu edit manual bila ada data pendukung yang lebih kuat. Alternatifnya, perlu tambahan sekitar {{ formatRupiah(sroiGapExplanation.additionalDampakNeeded) }} pada estimasi Total Nilai Dampak Sosial (sebelum potongan) agar Dampak Nilai Sekarang menyamai Nilai Input.
  </p>
  </div>
  </div>
