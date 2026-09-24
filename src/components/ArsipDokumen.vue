@@ -257,6 +257,16 @@
  <i data-lucide="sparkles" style="width:15px;height:15px; color:#7c3aed; flex-shrink:0;"></i>
  <span>Edit dengan AI</span>
  </button>
+ <button
+ class="arsip-more-menu-item"
+ style="display:flex; align-items:center; gap:8px; width:100%; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border-color,#eee); cursor:pointer; font-size:0.82rem; color:#0284c7; text-align:left;"
+ :style="!item.hasSourceText ? 'opacity:0.5; cursor:not-allowed;' : ''"
+ :title="item.hasSourceText ? 'Generate ulang analisis AI dari teks PDF yang tersimpan (tanpa unggah PDF)' : 'Dokumen lama: gunakan Unggah Ulang PDF sekali agar tombol ini bisa dipakai'"
+ @click="handleMuatUlangPdf(item)"
+ >
+ <i data-lucide="rotate-cw" style="width:15px;height:15px; color:#0284c7; flex-shrink:0;"></i>
+ <span>Muat Ulang PDF</span>
+ </button>
  </div>
  </div>
  </div>
@@ -267,6 +277,14 @@
  </div>
  </div>
  </div>
+
+ <!-- Indikator proses Muat Ulang PDF -->
+ <Teleport to="body">
+ <div v-if="muatUlangId" style="position:fixed; right:20px; bottom:20px; z-index:9999; background:#0f172a; color:#fff; padding:12px 16px; border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,0.3); font-size:0.85rem; max-width:320px;">
+ <strong>Muat Ulang PDF</strong><br>
+ <span style="opacity:0.85;">{{ muatUlangText }}</span>
+ </div>
+ </Teleport>
 
  <!-- ===================== MODAL: Delete Confirmation (ketik kalimat konfirmasi, gaya GitHub) ===================== -->
  <Teleport to="body">
@@ -684,6 +702,7 @@ const {
  deleteRkiBulk,
  updateRkiMetadata,
  reanalyzeDocWithPdf,
+ regenerateDocFromStoredText,
  formatRupiah,
  downloadUserBackup,
  downloadFullBackupJson,
@@ -781,6 +800,35 @@ const openEditAiModal = (item) => {
 const closeEditAiModal = () => {
  showEditAiModal.value = false;
  editAiTarget.value = null;
+};
+
+// ── Muat Ulang PDF ───────────────────────────────────────────────────
+// Generate ulang analisis AI dari teks PDF yang sudah tersimpan (tanpa unggah PDF lagi),
+// lalu langsung menampilkan hasil analisisnya.
+const muatUlangId = ref(null);
+const muatUlangText = ref('');
+
+const handleMuatUlangPdf = async (item) => {
+  closeMoreMenu();
+  if (muatUlangId.value) return;
+  if (!item.hasSourceText) {
+    alert('Dokumen ini dibuat sebelum fitur Muat Ulang PDF ada, jadi teks PDF-nya belum tersimpan.\nGunakan tombol "Unggah Ulang PDF" (ikon panah melingkar) sekali; setelah itu Muat Ulang PDF bisa dipakai.');
+    return;
+  }
+  muatUlangId.value = item.id;
+  muatUlangText.value = 'Menyiapkan…';
+  try {
+    const updated = await regenerateDocFromStoredText(item.id, (_prog, text) => {
+      muatUlangText.value = text;
+    });
+    if (updated) loadHistoricalDocIntoAnalyzer(updated);
+  } catch (err) {
+    console.error('Muat Ulang PDF gagal:', err);
+    alert('Gagal Muat Ulang PDF: ' + (err.message || 'Terjadi kesalahan'));
+  } finally {
+    muatUlangId.value = null;
+    muatUlangText.value = '';
+  }
 };
 
 // ── Re-upload & Re-analyze State ─────────────────────────────────────

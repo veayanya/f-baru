@@ -46,6 +46,17 @@
  </button>
  <button
  class="btn btn-secondary btn-sm"
+ :disabled="isMuatUlang || !canMuatUlangPdf"
+ @click="handleMuatUlangPdf"
+ :title="canMuatUlangPdf ? 'Generate ulang analisis AI dari teks PDF yang tersimpan (tanpa unggah PDF lagi)' : 'Dokumen lama: gunakan Unggah Ulang PDF sekali agar tombol ini bisa dipakai'"
+ style="display: flex; align-items: center; gap: 5px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: #0284c7; background: #f0f9ff; border-color: #bae6fd;"
+ :style="(isMuatUlang || !canMuatUlangPdf) ? 'opacity:0.6; cursor:not-allowed;' : ''"
+ >
+ <i :data-lucide="isMuatUlang ? 'loader-2' : 'rotate-cw'" :class="{ 'spin-anim': isMuatUlang }" style="width:14px;height:14px;"></i>
+ {{ isMuatUlang ? (muatUlangText || 'Memuat ulang…') : 'Muat Ulang PDF' }}
+ </button>
+ <button
+ class="btn btn-secondary btn-sm"
  @click="handleDownloadReport"
  title="Unduh Hasil Analisis Lengkap"
  style="display: flex; align-items: center; gap: 5px; padding: 6px 14px; font-size: 12px; font-weight: 600;"
@@ -896,7 +907,34 @@ const props = defineProps({
  },
 });
 
-const { currentTab, rkis, loadSpecificVersionIntoAnalyzer, loadHistoricalDocIntoAnalyzer, reanalyzeDocWithPdf, deleteRki } = useAnalysis();
+const { currentTab, rkis, loadSpecificVersionIntoAnalyzer, loadHistoricalDocIntoAnalyzer, reanalyzeDocWithPdf, regenerateDocFromStoredText, deleteRki } = useAnalysis();
+
+// ── Muat Ulang PDF ───────────────────────────────────────────────────
+// Generate ulang analisis AI dari teks PDF yang sudah tersimpan — tanpa unggah PDF lagi.
+// Hasil disimpan sebagai versi baru dan halaman ini langsung menampilkan hasil terbaru.
+const isMuatUlang = ref(false);
+const muatUlangText = ref('');
+const canMuatUlangPdf = computed(() => {
+  const id = props.analysis?.id;
+  return !!(id && (rkis.value || []).find(r => r.id === id)?.hasSourceText);
+});
+
+const handleMuatUlangPdf = async () => {
+  const id = props.analysis?.id;
+  if (!id || isMuatUlang.value || !canMuatUlangPdf.value) return;
+  isMuatUlang.value = true;
+  muatUlangText.value = 'Menyiapkan…';
+  try {
+    // saveManualVersion di dalamnya otomatis memuat ulang analisis aktif → halaman & grafik langsung berubah
+    await regenerateDocFromStoredText(id, (_prog, text) => { muatUlangText.value = text; });
+  } catch (err) {
+    console.error('Muat Ulang PDF gagal:', err);
+    alert('Gagal Muat Ulang PDF: ' + (err.message || 'Terjadi kesalahan'));
+  } finally {
+    isMuatUlang.value = false;
+    muatUlangText.value = '';
+  }
+};
 
 // ── Edit Manual & Edit dengan AI ─────────────────────────────────────
 // Keduanya menyimpan hasil sebagai VERSI BARU lewat saveManualVersion(), yang juga

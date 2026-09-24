@@ -1391,6 +1391,8 @@ async function handleRkaFiles(files) {
       analysisObj.id = newId;
       analysisObj.namaDokumen = file.name;
       analysisObj.ukuranBerkas = file.size;
+      // Teks PDF disimpan di server agar bisa dianalisis ulang lewat tombol "Muat Ulang PDF"
+      analysisObj.sourceText = textContent;
 
       // Save to backend
       try {
@@ -2126,6 +2128,9 @@ async function reanalyzeDocWithPdf(targetId, file, onProgress = () => { }) {
     ];
   }
 
+  // Perbarui teks PDF tersimpan (dipakai tombol "Muat Ulang PDF")
+  analysisObj.sourceText = textContent;
+
   onProgress(90, "Menyimpan pembaruan analisis ke server...");
   const res = await apiFetch(`/api/v1/rkis/${targetId}`, {
     method: 'PUT',
@@ -2172,6 +2177,81 @@ async function reanalyzeDocWithPdf(targetId, file, onProgress = () => { }) {
   } catch { }
 
   return updatedDoc;
+}
+
+// ── Muat Ulang PDF ───────────────────────────────────────────────────
+// Analisis AI dijalankan ulang memakai teks PDF yang SUDAH tersimpan di server —
+// pengguna tidak perlu mengunggah PDF lagi. Hasilnya disimpan sebagai versi baru
+// (versi lama tetap ada di riwayat) dan langsung dikembalikan untuk ditampilkan.
+async function regenerateDocFromStoredText(targetId, onProgress = () => { }) {
+  const existingDoc = state.rkis.find(r => r.id === targetId);
+  if (!existingDoc) throw new Error('Dokumen tidak ditemukan di arsip.');
+
+  onProgress(10, 'Mengambil teks PDF yang tersimpan...');
+  const srcRes = await apiFetch(`/api/v1/rkis/${encodeURIComponent(targetId)}/source-text`, {
+    credentials: 'include'
+  });
+  const src = await srcRes.json().catch(() => ({}));
+  if (!srcRes.ok || !src.text) {
+    throw new Error(src.error || `Teks PDF tersimpan tidak tersedia (${srcRes.status}).`);
+  }
+
+  onProgress(40, 'Layanan AI sedang mengevaluasi ulang SROI...');
+  const analysisObj = await processWithAIService(
+    src.text,
+    existingDoc.namaDokumen,
+    existingDoc.ukuranFile || existingDoc.ukuranBerkas || 0
+  );
+
+  // Bila server jatuh ke Smart Heuristic (AI gagal/kuota habis), jangan timpa hasil lama.
+  let metode = '';
+  try { metode = JSON.parse(analysisObj.rawJson || '{}')._metode || ''; } catch { }
+  if (metode === 'heuristic') {
+    throw new Error('Layanan AI belum bisa memproses saat ini (kuota/koneksi). Hasil analisis lama tidak diubah — silakan coba lagi nanti.');
+  }
+
+  // Pertahankan identitas & status dokumen; hanya isi hasil analisis yang diperbarui.
+  analysisObj.opd = cleanOpdName(analysisObj.opd);
+  analysisObj.perangkatDaerah = cleanOpdName(analysisObj.perangkatDaerah || analysisObj.opd);
+  analysisObj.id = targetId;
+  analysisObj.namaDokumen = existingDoc.namaDokumen;
+  analysisObj.ukuranFile = existingDoc.ukuranFile || 0;
+  analysisObj.ukuranBerkas = existingDoc.ukuranBerkas || existingDoc.ukuranFile || 0;
+  analysisObj.tanggalUpload = existingDoc.tanggalUpload || analysisObj.tanggalUpload;
+  analysisObj.status = existingDoc.status || analysisObj.status;
+  analysisObj.catatan = existingDoc.catatan || '';
+  analysisObj.reallocationEdited = false;
+
+  onProgress(85, 'Menyimpan hasil sebagai versi baru...');
+  const result = await saveManualVersion(targetId, {
+    parentVersionId: existingDoc.activeVersionId,
+    changesSummary: 'Analisis AI dijalankan ulang dari teks PDF yang tersimpan (Muat Ulang PDF).',
+    data: analysisObj,
+    createdBy: currentUser.value?.name || currentUser.value?.username || 'User',
+    source: 'muat-ulang-pdf'
+  });
+  if (!result || !result.rka) {
+    throw new Error('Gagal menyimpan hasil analisis ulang ke server.');
+  }
+
+  onProgress(100, 'Selesai!');
+  try {
+    await apiFetch('/api/v1/activity-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'REUPLOAD_RKA',
+        target: result.rka.namaDokumen || result.rka.id,
+        details: 'Muat Ulang PDF: analisis AI dijalankan ulang dari teks PDF tersimpan',
+        status: 'SUCCESS',
+        username: currentUser.value?.username,
+        name: currentUser.value?.name,
+        role: currentUser.value?.role
+      })
+    });
+  } catch { }
+
+  return result.rka;
 }
 
 /* ==========================================================================
@@ -2627,7 +2707,8 @@ export function useAnalysis() {
     downloadAnalysisHtmlReport,
     // OPD Sanitizer & Re-Upload Analysis
     cleanOpdName,
-    reanalyzeDocWithPdf
+    reanalyzeDocWithPdf,
+    regenerateDocFromStoredText
   };
 }
 
