@@ -1244,7 +1244,7 @@ export function generateAnalysisHtml(doc) {
  <div class="stat-value positive">${formatRupiah(sroiMetrics.netImpact)}</div>
  </div>
  <div class="sroi-stat-card">
- <div class="stat-label">Nilai Sekarang Dampak</div>
+ <div class="stat-label">Dampak Nilai Saat Ini</div>
  <div class="stat-value positive">${formatRupiah(sroiMetrics.pvImpact)}</div>
  </div>
  </div>
@@ -1254,27 +1254,27 @@ export function generateAnalysisHtml(doc) {
  <div class="sroi-factors-title"> Faktor Penyesuaian Dampak Sosial</div>
  <div class="sroi-factors-grid">
  <div class="sroi-factor-item">
- <span class="factor-name">Deadweight</span>
+ <span class="factor-name">Kerugian Bobot</span>
  <span class="factor-val">${sroiMetrics.deadweight}%</span>
  <span class="factor-hint">Outcome tanpa intervensi</span>
  </div>
  <div class="sroi-factor-item">
- <span class="factor-name">Attribution</span>
+ <span class="factor-name">Atribusi</span>
  <span class="factor-val">${sroiMetrics.attribution}%</span>
  <span class="factor-hint">Kontribusi pihak lain</span>
  </div>
  <div class="sroi-factor-item">
- <span class="factor-name">Displacement</span>
+ <span class="factor-name">Pergeseran Manfaat</span>
  <span class="factor-val">${sroiMetrics.displacement}%</span>
  <span class="factor-hint">Pengurangan manfaat lain</span>
  </div>
  <div class="sroi-factor-item">
- <span class="factor-name">Drop-off</span>
+ <span class="factor-name">Penyusutan</span>
  <span class="factor-val">${sroiMetrics.dropOff}%</span>
  <span class="factor-hint">Penurunan multi-tahun</span>
  </div>
  <div class="sroi-factor-item">
- <span class="factor-name">Discount Rate</span>
+ <span class="factor-name">Tingkat Diskonto</span>
  <span class="factor-val">${sroiMetrics.discountRate}%</span>
  <span class="factor-hint">Diskonto masa depan</span>
  </div>
@@ -1306,7 +1306,7 @@ export function generateAnalysisHtml(doc) {
  <div class="flow-step">
  <div class="step-num">3</div>
  <div class="step-body">
- <div class="step-title">Deadweight (${sroiMetrics.deadweight}%)</div>
+ <div class="step-title">Kerugian Bobot (${sroiMetrics.deadweight}%)</div>
  <div class="step-val">${formatRupiah(sroiMetrics.dampakSetelahDeadweight)}</div>
  </div>
  </div>
@@ -1322,7 +1322,7 @@ export function generateAnalysisHtml(doc) {
  <div class="flow-step">
  <div class="step-num">5</div>
  <div class="step-body">
- <div class="step-title">PV Dampak</div>
+ <div class="step-title">Dampak Nilai Saat Ini</div>
  <div class="step-val">${formatRupiah(sroiMetrics.pvImpact)}</div>
  </div>
  </div>

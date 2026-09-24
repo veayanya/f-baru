@@ -788,7 +788,7 @@ const state = reactive({
   rules: JSON.parse(localStorage.getItem('bapperida_rules')) || [
     { id: 'rule-sroi-min', name: 'Ambang Batas Rasio Nilai Prakiraan Dampak Minimal', desc: 'Nilai rasio manfaat sosial-ekonomi (Rasio Nilai Prakiraan Dampak) ≥ 1.0 dinyatakan Layak (Hijau), sedangkan 0.6 – 0.99 diberikan Keringanan/Moderat (Kuning).', active: true },
     { id: 'rule-ssh-cirebon', name: 'Validasi SSH Kabupaten Cirebon 2026', desc: 'Memvalidasi belanja barang/jasa (seperti ATK, laptop, konsumsi) agar tidak melebihi pagu standar harga e-SSH 2026.', active: true },
-    { id: 'rule-deadweight-limit', name: 'Batas Deadweight Maksimal 40%', desc: 'Persentase Deadweight (dampak sosial yang tetap terjadi tanpa program) tidak boleh melebihi 40%.', active: true },
+    { id: 'rule-deadweight-limit', name: 'Batas Kerugian Bobot Maksimal 40%', desc: 'Persentase Kerugian Bobot (dampak sosial yang tetap terjadi tanpa program) tidak boleh melebihi 40%.', active: true },
     { id: 'rule-rpjmd-sync', name: 'Keselarasan RPJMD & RKPD', desc: 'Indikator keluaran program harus selaras dengan misi dan target IKU RPJMD Kabupaten Cirebon.', active: true }
   ],
 
