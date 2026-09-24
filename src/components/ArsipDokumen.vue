@@ -43,6 +43,21 @@
  </div>
  </div>
 
+  <!-- Tab: Arsip Aktif / Sampah -->
+ <div class="arsip-tabs" role="tablist" aria-label="Tampilan arsip">
+  <button type="button" role="tab" id="tab-arsip-aktif" class="arsip-tab" :class="{ active: activeView === 'aktif' }" :aria-selected="activeView === 'aktif'" @click="switchView('aktif')">
+   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+   Arsip Aktif
+   <span class="arsip-tab-count">{{ rkis.length }}</span>
+  </button>
+  <button type="button" role="tab" id="tab-arsip-sampah" class="arsip-tab" :class="{ active: activeView === 'sampah' }" :aria-selected="activeView === 'sampah'" @click="switchView('sampah')">
+   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+   Sampah
+   <span class="arsip-tab-count" :class="{ 'has-items': trashItems.length > 0 }">{{ trashItems.length }}</span>
+  </button>
+ </div>
+
+ <template v-if="activeView === 'aktif'">
  <!-- Search & Filter Bar -->
  <div class="arsip-filter-bar">
  <div style="position: relative; flex: 1; min-width: 200px;">
@@ -275,6 +290,141 @@
  </table>
  </div>
  </div>
+ </template>
+
+ <!-- ===================== TAB SAMPAH ===================== -->
+ <template v-else>
+ <div class="arsip-trash-note">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+  <span>Dokumen yang dihapus disimpan di Sampah selama {{ TRASH_RETENTION_DAYS }} hari, lalu hangus otomatis. Periksa dulu daftarnya, kemudian kembalikan yang masih diperlukan.</span>
+ </div>
+
+ <div class="arsip-filter-bar">
+  <div style="position: relative; flex: 1; min-width: 200px;">
+   <input
+    type="text"
+    id="trash-search"
+    class="form-input"
+    v-model="searchQuery"
+    placeholder="Cari nama dokumen, OPD, atau ID di Sampah..."
+    style="padding-left: 38px;"
+   >
+   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+  </div>
+  <div class="arsip-count-badge">
+   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+   {{ filteredTrash.length }} di Sampah
+  </div>
+  <div class="arsip-bulk-actions">
+   <template v-if="trashSelectedCount > 0">
+    <span class="bulk-count">{{ trashSelectedCount }} dipilih</span>
+    <button class="bulk-btn bulk-btn-clear" @click="clearTrashSelection">Batal Pilih</button>
+    <button class="bulk-btn bulk-btn-restore" @click="openTrashRestore('selected')">
+     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+     Kembalikan Terpilih ({{ trashSelectedCount }})
+    </button>
+   </template>
+   <button class="bulk-btn bulk-btn-restore-outline" :disabled="filteredTrash.length === 0" @click="openTrashRestore('all')" title="Kembalikan seluruh dokumen yang sedang tampil di Sampah">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+    Kembalikan Semua
+   </button>
+  </div>
+ </div>
+
+ <div class="card-body" style="padding: 0;">
+  <div class="data-table-container">
+   <table class="data-table arsip-table">
+    <thead>
+     <tr>
+      <th class="arsip-th-check">
+       <input type="checkbox" class="arsip-check" :checked="allTrashSelected" :indeterminate.prop="someTrashSelected" :disabled="filteredTrash.length === 0" @change="toggleTrashSelectAll" aria-label="Pilih semua dokumen di Sampah yang tampil" title="Pilih semua yang tampil" />
+      </th>
+      <th>Nama Dokumen</th>
+      <th>OPD / Satuan Kerja</th>
+      <th v-if="isPrivileged">Pengunggah</th>
+      <th style="text-align:center;">Tahun Berjalan</th>
+      <th>Dihapus Pada</th>
+      <th style="text-align:center;">Sisa Waktu</th>
+      <th style="text-align:right;">Ukuran File</th>
+      <th style="text-align:center;">Aksi</th>
+     </tr>
+    </thead>
+    <tbody>
+     <!-- Memuat -->
+     <tr v-if="trashLoading && trashItems.length === 0">
+      <td :colspan="trashColspan" class="arsip-empty-state">
+       <div class="arsip-empty-content"><p>Memuat isi Sampah...</p></div>
+      </td>
+     </tr>
+
+     <!-- Kosong -->
+     <tr v-else-if="filteredTrash.length === 0">
+      <td :colspan="trashColspan" class="arsip-empty-state">
+       <div class="arsip-empty-content">
+        <div style="opacity: 0.25; margin-bottom: 16px;"><svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></div>
+        <p v-if="searchQuery">Tidak ada dokumen di Sampah yang cocok dengan kata kunci pencarian.</p>
+        <p v-else>
+         Sampah kosong.<br>
+         Dokumen yang dihapus dari arsip akan muncul di sini dan bisa dikembalikan selama {{ TRASH_RETENTION_DAYS }} hari.
+        </p>
+       </div>
+      </td>
+     </tr>
+
+     <!-- Baris data -->
+     <template v-else>
+      <tr
+       v-for="(item, rowIndex) in filteredTrash"
+       :key="item.id"
+       class="arsip-row"
+       :class="{ 'arsip-row-selected': trashSelectedIds.has(item.id) }"
+      >
+       <td class="arsip-td-check">
+        <input type="checkbox" class="arsip-check" :checked="trashSelectedIds.has(item.id)" @click="onTrashRowCheck($event, item, rowIndex)" :aria-label="'Pilih ' + (item.namaDokumen || item.id)" />
+       </td>
+
+       <td class="arsip-td-nama">
+        <div class="arsip-doc-name trash-doc-name" :title="item.namaDokumen || item.program">{{ item.namaDokumen || item.program }}</div>
+        <div class="arsip-doc-sub"><span>{{ item.id }} · {{ item.program }}</span></div>
+       </td>
+
+       <td class="arsip-td-opd" :title="item.opd">{{ cleanOpdName(item.opd) }}</td>
+
+       <td v-if="isPrivileged">
+        <div style="font-weight:600; color:var(--text-primary); font-size: 0.85rem; margin-bottom:2px;">{{ item.createdBy || 'Unknown User' }}</div>
+        <div style="font-size: 0.7rem; color: var(--text-muted);">{{ item.clientIp || ('ID: ' + (item.userId || '-')) }}</div>
+       </td>
+
+       <td style="text-align:center; font-weight: 700; font-size: 0.88rem; color: var(--text-secondary);">
+        {{ item.tahunRencana || item.tahun || '—' }}
+       </td>
+
+       <td class="arsip-td-date">
+        {{ formatDate(item.deletedAt) }}
+        <div class="trash-by">oleh {{ item.deletedBy || 'system' }}</div>
+       </td>
+
+       <td style="text-align:center;">
+        <span class="trash-expiry" :class="{ urgent: trashExpiry(item).urgent }">{{ trashExpiry(item).text }}</span>
+       </td>
+
+       <td style="text-align:right; font-size: 0.8rem; color: var(--text-secondary);">
+        {{ formatFileSize(item.ukuranFile) }}
+       </td>
+
+       <td style="text-align:center;">
+        <button class="btn btn-primary btn-sm trash-restore-btn" @click="openTrashRestore('single', item)" title="Kembalikan dokumen ini ke Arsip Aktif">
+         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+         <span>Kembalikan</span>
+        </button>
+       </td>
+      </tr>
+     </template>
+    </tbody>
+   </table>
+  </div>
+ </div>
+ </template>
  </div>
 
  <!-- Indikator proses Muat Ulang PDF -->
@@ -295,7 +445,7 @@
  </div>
  <h3 id="delete-confirm-title" class="modal-title">Hapus {{ deleteTargets.length }} dokumen?</h3>
  <p class="modal-desc">
- Dokumen berikut akan dihapus dari arsip <strong>secara permanen</strong>.
+ Dokumen berikut akan dipindahkan ke tab <strong>Sampah</strong> dan bisa dikembalikan selama {{ TRASH_RETENTION_DAYS }} hari.
  <template v-if="deleteScopeNote">{{ deleteScopeNote }}</template>
  </p>
 
@@ -307,7 +457,7 @@
  <li v-if="deleteTargets.length > 6" class="ddl-more">…dan {{ deleteTargets.length - 6 }} dokumen lainnya</li>
  </ul>
 
- <p class="modal-warning">Data yang telah dihapus tidak dapat dikembalikan.</p>
+ <p class="modal-warning">Setelah {{ TRASH_RETENTION_DAYS }} hari di Sampah, dokumen hangus otomatis dan tidak dapat dikembalikan lagi.</p>
 
  <label class="delete-confirm-label" for="delete-confirm-input">
  Untuk mengonfirmasi, ketik <code class="delete-phrase">{{ deletePhrase }}</code> di bawah ini:
@@ -341,6 +491,56 @@
  </div>
  </div>
  </Transition>
+ </Teleport>
+
+ <!-- ===================== MODAL: Konfirmasi Kembalikan dari Sampah ===================== -->
+ <Teleport to="body">
+  <Transition name="modal-fade">
+   <div v-if="showTrashRestoreModal" class="modal-overlay" @click.self="closeTrashRestore">
+    <div class="modal-box delete-confirm-box" role="dialog" aria-modal="true" aria-labelledby="trash-restore-title" @keydown.esc="closeTrashRestore">
+     <div class="modal-icon-wrap primary">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+     </div>
+     <h3 id="trash-restore-title" class="modal-title">Kembalikan {{ trashRestoreTargets.length }} dokumen?</h3>
+     <p class="modal-desc">
+      Dokumen berikut akan dikembalikan dari Sampah ke <strong>Arsip Aktif</strong>.
+      <template v-if="trashRestoreScopeNote">{{ trashRestoreScopeNote }}</template>
+     </p>
+
+     <!-- Pilihan cakupan: hanya muncul bila ada dokumen yang dicentang -->
+     <div v-if="trashRestoreScope !== 'single' && trashSelectedCount > 0" class="trash-scope-toggle" role="radiogroup" aria-label="Cakupan pemulihan">
+      <button type="button" role="radio" class="trash-scope-opt" :class="{ active: trashRestoreScope === 'selected' }" :aria-checked="trashRestoreScope === 'selected'" :disabled="isTrashRestoring" @click="trashRestoreScope = 'selected'">
+       Terpilih ({{ trashSelectedCount }})
+      </button>
+      <button type="button" role="radio" class="trash-scope-opt" :class="{ active: trashRestoreScope === 'all' }" :aria-checked="trashRestoreScope === 'all'" :disabled="isTrashRestoring" @click="trashRestoreScope = 'all'">
+       Semua ({{ filteredTrash.length }})
+      </button>
+     </div>
+
+     <ul class="delete-doc-list">
+      <li v-for="doc in trashRestoreTargets.slice(0, 6)" :key="doc.id">
+       <span class="ddl-name">{{ doc.namaDokumen || doc.program || doc.id }}</span>
+       <span class="ddl-id">{{ doc.id }}</span>
+      </li>
+      <li v-if="trashRestoreTargets.length > 6" class="ddl-more">…dan {{ trashRestoreTargets.length - 6 }} dokumen lainnya</li>
+     </ul>
+
+     <div class="modal-actions">
+      <button class="btn btn-secondary modal-btn" id="btn-cancel-trash-restore" :disabled="isTrashRestoring" @click="closeTrashRestore">
+       Batal
+      </button>
+      <button
+       class="btn btn-primary modal-btn"
+       id="btn-confirm-trash-restore"
+       :disabled="isTrashRestoring || trashRestoreTargets.length === 0"
+       @click="confirmTrashRestore"
+      >
+       {{ trashRestoreConfirmLabel }}
+      </button>
+     </div>
+    </div>
+   </div>
+  </Transition>
  </Teleport>
 
  <!-- ===================== MODAL: Edit Metadata ===================== -->
@@ -712,7 +912,9 @@ const {
  arsipSyncing,
  arsipSyncError,
  refreshArsip,
- realtimeConnected
+ realtimeConnected,
+ fetchTrash,
+ restoreTrashBulk
 } = useAnalysis();
 
 // ── Search & Filter ──────────────────────────────────────────────────
@@ -1087,6 +1289,7 @@ const confirmDelete = async () => {
  const ids = deleteTargets.value.map(d => d.id);
  const result = await deleteRkiBulk(ids);
  if (result.failed.length === ids.length) return; // semuanya gagal: biarkan dialog terbuka agar bisa dicoba lagi
+ loadTrash(); // dokumen yang baru dihapus sekarang ada di tab Sampah
  const gone = new Set(result.deleted);
  selectedIds.value = new Set([...selectedIds.value].filter(id => !gone.has(id)));
  showDeleteModal.value = false;
@@ -1096,6 +1299,178 @@ const confirmDelete = async () => {
  isDeleting.value = false;
  }
 };
+
+// ── Tab Arsip Aktif / Sampah ─────────────────────────────────────────
+// Dokumen yang dihapus tidak langsung hilang: server memindahkannya ke Sampah
+// dan menyimpannya TRASH_RETENTION_DAYS hari (samakan dengan TRASH_RETENTION_DAYS di server.js).
+const TRASH_RETENTION_DAYS = 30;
+const activeView = ref('aktif'); // 'aktif' | 'sampah'
+const trashItems = ref([]);
+const trashLoading = ref(false);
+let trashReloadQueued = false;
+
+// Permintaan yang datang saat pemuatan masih berjalan digabung jadi satu muat ulang susulan.
+const loadTrash = async () => {
+  if (trashLoading.value) { trashReloadQueued = true; return; }
+  trashLoading.value = true;
+  try {
+    trashItems.value = await fetchTrash();
+  } finally {
+    trashLoading.value = false;
+    if (trashReloadQueued) { trashReloadQueued = false; loadTrash(); }
+  }
+};
+
+const switchView = (view) => {
+  if (activeView.value === view) return;
+  activeView.value = view;
+  searchQuery.value = ''; // pencarian tidak dibawa ke tab lain agar cakupan "Semua" tidak terfilter diam-diam
+  clearSelection();
+  clearTrashSelection();
+  closeMoreMenu();
+  if (view === 'sampah') loadTrash();
+};
+
+const getDeletedTime = (item) => {
+  const t = Date.parse(item?.deletedAt || '');
+  return Number.isNaN(t) ? 0 : t;
+};
+
+const filteredTrash = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim();
+  return trashItems.value
+    .filter(item => {
+      return !q ||
+        (item.namaDokumen || '').toLowerCase().includes(q) ||
+        (item.opd || '').toLowerCase().includes(q) ||
+        (item.program || '').toLowerCase().includes(q) ||
+        String(item.id || '').toLowerCase().includes(q);
+    })
+    .sort((a, b) => getDeletedTime(b) - getDeletedTime(a));
+});
+
+const trashColspan = computed(() => (isPrivileged.value ? 9 : 8));
+
+// Sisa waktu sebelum dokumen di Sampah hangus otomatis.
+const trashExpiry = (item) => {
+  const t = getDeletedTime(item);
+  if (!t) return { text: '—', urgent: false };
+  const left = TRASH_RETENTION_DAYS - Math.floor((Date.now() - t) / 86400000);
+  if (left <= 0) return { text: 'Segera hangus', urgent: true };
+  return { text: `${left} hari lagi`, urgent: left <= 3 };
+};
+
+// Pilih (satu, beberapa, atau semua) di Sampah — pola sama dengan arsip aktif.
+const trashSelectedIds = ref(new Set());
+let lastTrashCheckedIndex = -1;
+
+const trashSelectedCount = computed(() => trashSelectedIds.value.size);
+const allTrashSelected = computed(() =>
+  filteredTrash.value.length > 0 && filteredTrash.value.every(i => trashSelectedIds.value.has(i.id))
+);
+const someTrashSelected = computed(() => trashSelectedCount.value > 0 && !allTrashSelected.value);
+
+const clearTrashSelection = () => { trashSelectedIds.value = new Set(); lastTrashCheckedIndex = -1; };
+
+const toggleTrashSelectAll = () => {
+  if (allTrashSelected.value) { clearTrashSelection(); return; }
+  trashSelectedIds.value = new Set(filteredTrash.value.map(i => i.id));
+};
+
+// Klik biasa: pilih/batalkan satu dokumen. Shift+klik: pilih rentang dari klik sebelumnya.
+const onTrashRowCheck = (e, item, index) => {
+  const on = !trashSelectedIds.value.has(item.id);
+  const next = new Set(trashSelectedIds.value);
+  if (e.shiftKey && lastTrashCheckedIndex >= 0 && lastTrashCheckedIndex < filteredTrash.value.length) {
+    const [from, to] = [Math.min(lastTrashCheckedIndex, index), Math.max(lastTrashCheckedIndex, index)];
+    for (let i = from; i <= to; i++) {
+      const id = filteredTrash.value[i].id;
+      if (on) next.add(id); else next.delete(id);
+    }
+  } else if (on) {
+    next.add(item.id);
+  } else {
+    next.delete(item.id);
+  }
+  trashSelectedIds.value = next;
+  lastTrashCheckedIndex = index;
+};
+
+// Buang pilihan yang sudah tidak tampil (dipulihkan, hangus, atau tersaring pencarian).
+watch(filteredTrash, (list) => {
+  if (trashSelectedIds.value.size === 0) return;
+  const visible = new Set(list.map(i => i.id));
+  const kept = [...trashSelectedIds.value].filter(id => visible.has(id));
+  if (kept.length !== trashSelectedIds.value.size) trashSelectedIds.value = new Set(kept);
+});
+
+// Konfirmasi kembalikan: Terpilih / Semua / satu dokumen, dengan tombol Batal.
+const showTrashRestoreModal = ref(false);
+const trashRestoreScope = ref('selected'); // 'selected' | 'all' | 'single'
+const trashRestoreSingle = ref(null);
+const isTrashRestoring = ref(false);
+
+const trashRestoreTargets = computed(() => {
+  if (trashRestoreScope.value === 'single') return trashRestoreSingle.value ? [trashRestoreSingle.value] : [];
+  if (trashRestoreScope.value === 'selected') return filteredTrash.value.filter(i => trashSelectedIds.value.has(i.id));
+  return filteredTrash.value;
+});
+
+const trashRestoreScopeNote = computed(() => {
+  if (trashRestoreScope.value !== 'all') return '';
+  return searchQuery.value.trim()
+    ? 'Hanya dokumen yang cocok dengan pencarian saat ini.'
+    : 'Ini mencakup seluruh dokumen di Sampah.';
+});
+
+const trashRestoreConfirmLabel = computed(() => {
+  if (isTrashRestoring.value) return 'Mengembalikan...';
+  const n = trashRestoreTargets.value.length;
+  if (trashRestoreScope.value === 'selected') return `Kembalikan Terpilih (${n})`;
+  if (trashRestoreScope.value === 'all') return `Kembalikan Semua (${n})`;
+  return 'Kembalikan';
+});
+
+const openTrashRestore = (scope, item = null) => {
+  if (scope === 'selected' && trashSelectedCount.value === 0) return;
+  if (scope === 'all' && filteredTrash.value.length === 0) return;
+  if (scope === 'single' && !item) return;
+  trashRestoreScope.value = scope;
+  trashRestoreSingle.value = item;
+  showTrashRestoreModal.value = true;
+};
+
+const closeTrashRestore = () => {
+  if (isTrashRestoring.value) return;
+  showTrashRestoreModal.value = false;
+  trashRestoreSingle.value = null;
+};
+
+const confirmTrashRestore = async () => {
+  const targets = trashRestoreTargets.value;
+  if (targets.length === 0 || isTrashRestoring.value) return;
+  isTrashRestoring.value = true;
+  try {
+    const ids = targets.map(t => t.id);
+    const result = await restoreTrashBulk(ids);
+    if (result.failed.length === ids.length) return; // semuanya gagal: biarkan dialog terbuka agar bisa dicoba lagi
+    const back = new Set(result.restored);
+    trashSelectedIds.value = new Set([...trashSelectedIds.value].filter(id => !back.has(id)));
+    showTrashRestoreModal.value = false;
+    trashRestoreSingle.value = null;
+    await loadTrash();
+  } finally {
+    isTrashRestoring.value = false;
+  }
+};
+
+// Server memindahkan dokumen ke Sampah SETELAH arsip aktif berubah, jadi perubahan dari
+// perangkat lain (realtime) dimuat ulang dengan jeda singkat agar tidak mendahului penulisan Sampah.
+let trashSyncTimer = null;
+watch(() => rkis.value.length, () => {
+  clearTimeout(trashSyncTimer);
+  trashSyncTimer = setTimeout(loadTrash, 800);
+});
 
 // ── Edit Flow ─────────────────────────────────────────────────────────
 const openEditModal = (item) => {
@@ -1333,15 +1708,17 @@ onMounted(() => {
  if (window.lucide) nextTick(() => window.lucide.createIcons());
  nowTimer = setInterval(() => { nowTick.value = Date.now(); }, 10000);
  refreshArsip(); // pastikan data yang tampil sudah sama dengan server saat halaman dibuka
+ loadTrash(); // jumlah di tab Sampah
  document.addEventListener('click', closeMoreMenu);
 });
 
 onUnmounted(() => {
  if (nowTimer) clearInterval(nowTimer);
+ clearTimeout(trashSyncTimer);
  document.removeEventListener('click', closeMoreMenu);
 });
 
-watch([showDeleteModal, showEditModal, showSaveConfirmModal, showReuploadModal, showRestoreModal, showManualAnalysisModal, showEditAiModal, filteredRkis], () => {
+watch([showDeleteModal, showEditModal, showSaveConfirmModal, showReuploadModal, showRestoreModal, showManualAnalysisModal, showEditAiModal, filteredRkis, activeView], () => {
  nextTick(() => { if (window.lucide) window.lucide.createIcons(); });
 });
 </script>
@@ -1702,5 +2079,102 @@ tr.arsip-row-selected:hover { background-color: rgba(var(--primary-rgb), 0.13); 
  50% { transform: translateX(60%); width: 60%; }
  100% { transform: translateX(200%); width: 60%; }
 }
+
+/* ── Tab Arsip Aktif / Sampah ── */
+.arsip-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 10px 24px 0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+.arsip-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 8px 8px 0 0;
+  background: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.18s, background 0.18s, border-color 0.18s;
+}
+.arsip-tab:hover:not(.active) { color: var(--text-secondary); background: var(--bg-tertiary); }
+.arsip-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); background: var(--bg-primary); }
+.arsip-tab-count {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+}
+.arsip-tab.active .arsip-tab-count { color: var(--primary-color); border-color: rgba(var(--primary-rgb), 0.35); }
+.arsip-tab-count.has-items { color: #c4344f; background: rgba(196, 52, 79, 0.08); border-color: rgba(196, 52, 79, 0.3); }
+
+/* ── Sampah ── */
+.arsip-trash-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 24px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+.arsip-trash-note svg { flex-shrink: 0; margin-top: 2px; color: var(--primary-color); }
+.bulk-btn-restore { color: #fff; background: var(--primary-color); }
+.bulk-btn-restore:hover { filter: brightness(1.1); }
+.bulk-btn-restore-outline { color: var(--primary-color); background: transparent; border-color: rgba(var(--primary-rgb), 0.45); }
+.bulk-btn-restore-outline:hover:not(:disabled) { background: rgba(var(--primary-rgb), 0.08); }
+.trash-doc-name { font-weight: 700; color: var(--text-primary); }
+.trash-by { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.trash-expiry {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+.trash-expiry.urgent { color: #c4344f; background: rgba(196, 52, 79, 0.08); border-color: rgba(196, 52, 79, 0.3); }
+.trash-restore-btn { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.78rem; padding: 5px 10px; white-space: nowrap; }
+
+/* Pilihan cakupan di dialog kembalikan */
+.trash-scope-toggle {
+  display: flex;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-secondary);
+}
+.trash-scope-opt {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 7px;
+  background: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.trash-scope-opt:disabled { opacity: 0.5; cursor: not-allowed; }
+.trash-scope-opt.active { color: #fff; background: var(--primary-color); }
 </style>
 

@@ -531,6 +531,59 @@ async function restoreFromTrash(rkaId) {
   }
 }
 
+/**
+ * Pulihkan banyak dokumen dari sampah sekaligus (terpilih / semua).
+ * Memakai endpoint massal; bila backend belum memilikinya (404/405) otomatis
+ * jatuh ke pemulihan satu per satu. Mengembalikan { restored, failed }.
+ */
+async function restoreTrashBulk(ids) {
+  const uniq = [...new Set((ids || []).map(String))];
+  if (uniq.length === 0) return { restored: [], failed: [] };
+
+  let restored = [];
+  let failed = [];
+
+  try {
+    const res = await apiFetch('/api/v1/trash/bulk-restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ ids: uniq })
+    });
+
+    if (res.status === 404 || res.status === 405) {
+      // Backend lama tanpa endpoint massal → pulihkan satu per satu.
+      for (const id of uniq) {
+        const r = await apiFetch(`/api/v1/trash/${encodeURIComponent(id)}/restore`, { method: 'POST', credentials: 'include' });
+        if (r.ok) restored.push(id);
+        else if (r.status !== 404) failed.push(id); // 404 = sudah tidak ada di sampah
+      }
+    } else {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Server menjawab ${res.status}`);
+      restored = data.restored || [];
+      failed = data.forbidden || [];
+    }
+  } catch (err) {
+    console.error(err);
+    showNotification('Gagal Memulihkan', err.message || 'Tidak dapat menghubungi server.', 'danger');
+    return { restored: [], failed: uniq };
+  }
+
+  if (restored.length > 0) await refreshArsip();
+
+  if (restored.length > 0 && failed.length === 0) {
+    showNotification('Dokumen Dipulihkan', `${restored.length} dokumen berhasil dikembalikan dari sampah ke arsip.`, 'success');
+  } else if (restored.length > 0) {
+    showNotification('Sebagian Dokumen Dipulihkan', `${restored.length} dokumen dikembalikan, ${failed.length} gagal (tidak ada izin atau kesalahan server).`, 'warning');
+  } else if (failed.length > 0) {
+    showNotification('Gagal Memulihkan', `${failed.length} dokumen gagal dikembalikan (tidak ada izin atau kesalahan server).`, 'danger');
+  } else {
+    showNotification('Tidak Ada yang Dipulihkan', 'Dokumen sudah tidak ada di sampah.', 'warning');
+  }
+  return { restored, failed };
+}
+
 /** Hapus permanen dari sampah (hanya Admin — dipanggil server-side juga divalidasi). */
 async function purgeTrashItem(rkaId) {
   try {
@@ -2148,7 +2201,7 @@ async function deleteRkiBulk(ids) {
   }
 
   if (failed.length === 0) {
-    showNotification('Dokumen Dihapus', `${gone.size} dokumen berhasil dihapus dari arsip.`, 'success');
+    showNotification('Dokumen Dipindahkan ke Sampah', `${gone.size} dokumen dipindahkan ke tab Sampah dan bisa dikembalikan.`, 'success');
   } else {
     showNotification(
       gone.size > 0 ? 'Sebagian Dokumen Dihapus' : 'Gagal Menghapus',
@@ -2861,6 +2914,7 @@ export function useAnalysis() {
     restoreRkaVersion,
     fetchTrash,
     restoreFromTrash,
+    restoreTrashBulk,
     purgeTrashItem,
     // Sinkronisasi arsip (indikator + muat ulang manual/otomatis)
     arsipLastSyncAt,
