@@ -467,6 +467,86 @@ async function autoBackupOnUpload() {
   }
 }
 
+/**
+ * Ambil riwayat versi sebuah dokumen RKA (backup otomatis dari setiap
+ * upload/edit) — dipakai untuk menampilkan "versi terdahulu vs sekarang"
+ * di panel Admin/User.
+ */
+async function fetchRkaHistory(rkaId) {
+  try {
+    const res = await apiFetch(`/api/v1/rkis/${encodeURIComponent(rkaId)}/history`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Gagal mengambil riwayat versi dokumen.');
+    return await res.json();
+  } catch (err) {
+    showNotification('Gagal Mengambil Riwayat', err.message, 'danger');
+    return { id: rkaId, versions: [] };
+  }
+}
+
+/** Pulihkan dokumen ke salah satu versi backup sebelumnya (indeks dari fetchRkaHistory). */
+async function restoreRkaVersion(rkaId, versionIndex) {
+  try {
+    const res = await apiFetch(`/api/v1/rkis/${encodeURIComponent(rkaId)}/history/${versionIndex}/restore`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    const result = await res.json();
+    if (!res.ok || result.error) throw new Error(result.error || 'Gagal memulihkan versi dokumen.');
+    await refreshArsip();
+    showNotification('Versi Dipulihkan', 'Dokumen berhasil dipulihkan ke versi sebelumnya.', 'success');
+    return result;
+  } catch (err) {
+    showNotification('Gagal Memulihkan Versi', err.message, 'danger');
+    return null;
+  }
+}
+
+/** Daftar dokumen yang sudah dihapus (satuan/massal) tapi belum hangus — bisa dipulihkan. */
+async function fetchTrash() {
+  try {
+    const res = await apiFetch('/api/v1/trash', { credentials: 'include' });
+    if (!res.ok) throw new Error('Gagal mengambil data sampah.');
+    return await res.json();
+  } catch (err) {
+    showNotification('Gagal Mengambil Sampah', err.message, 'danger');
+    return [];
+  }
+}
+
+/** Pulihkan dokumen dari sampah (misal tak sengaja terhapus) kembali ke arsip aktif. */
+async function restoreFromTrash(rkaId) {
+  try {
+    const res = await apiFetch(`/api/v1/trash/${encodeURIComponent(rkaId)}/restore`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    const result = await res.json();
+    if (!res.ok || result.error) throw new Error(result.error || 'Gagal memulihkan dokumen dari sampah.');
+    await refreshArsip();
+    showNotification('Dokumen Dipulihkan', 'Dokumen berhasil dipulihkan dari sampah ke arsip.', 'success');
+    return result;
+  } catch (err) {
+    showNotification('Gagal Memulihkan', err.message, 'danger');
+    return null;
+  }
+}
+
+/** Hapus permanen dari sampah (hanya Admin — dipanggil server-side juga divalidasi). */
+async function purgeTrashItem(rkaId) {
+  try {
+    const res = await apiFetch(`/api/v1/trash/${encodeURIComponent(rkaId)}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error('Gagal menghapus permanen dari sampah.');
+    showNotification('Dihapus Permanen', 'Dokumen dihapus permanen dari sampah.', 'success');
+    return true;
+  } catch (err) {
+    showNotification('Gagal Menghapus', err.message, 'danger');
+    return false;
+  }
+}
+
 async function restoreDatabase(payload) {
   try {
     let jsonPayload = payload;
@@ -2776,6 +2856,12 @@ export function useAnalysis() {
     downloadUserBackupJson,
     restoreDatabase,
     importBackupMerge,
+    // Riwayat versi dokumen & sampah (pemulihan dokumen tak sengaja terhapus/tertimpa)
+    fetchRkaHistory,
+    restoreRkaVersion,
+    fetchTrash,
+    restoreFromTrash,
+    purgeTrashItem,
     // Sinkronisasi arsip (indikator + muat ulang manual/otomatis)
     arsipLastSyncAt,
     arsipSyncing,
