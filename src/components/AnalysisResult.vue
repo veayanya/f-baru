@@ -515,7 +515,7 @@
  <div class="stat-value positive">{{ formatRupiah(sroiMetrics.netImpact) }}</div>
  </div>
  <div class="sroi-stat-card">
- <div class="stat-label">Dampak Nilai Sekarang</div>
+ <div class="stat-label">Dampak Nilai Saat Ini</div>
  <div class="stat-value positive">{{ formatRupiah(sroiMetrics.pvImpact) }}</div>
  </div>
  </div>
@@ -612,7 +612,7 @@
  <div class="flow-step">
  <div class="step-num">7</div>
  <div class="step-body">
- <div class="step-title">Dampak Nilai Sekarang ({{ sroiMetrics.durationYears }} thn, diskonto {{ sroiMetrics.discountRate }}%)</div>
+ <div class="step-title">Dampak Nilai Saat Ini ({{ sroiMetrics.durationYears }} thn, diskonto {{ sroiMetrics.discountRate }}%)</div>
  <div class="step-val">{{ formatRupiah(sroiMetrics.pvImpact) }}</div>
  </div>
  </div>
@@ -647,7 +647,7 @@
  </tbody>
  <tfoot>
  <tr>
- <td colspan="2">Total Dampak Nilai Sekarang</td>
+ <td colspan="2">Total Dampak Nilai Saat Ini</td>
  <td>{{ formatRupiah(sroiMetrics.pvImpact) }}</td>
  </tr>
  </tfoot>
@@ -685,7 +685,7 @@
  <div v-if="sroiGapExplanation && sroiGapExplanation.isBelowLayak" class="sroi-gap-box">
  <div class="sroi-gap-title">Kenapa belum masuk kategori "Layak" (≥ 1,0)?</div>
  <p class="sroi-gap-desc">
- Rasio dihitung dari Dampak Nilai Sekarang dibanding Nilai Input, bukan dari pembulatan atau pemotongan sepihak. Dari Total Nilai Dampak Sosial {{ formatRupiah(sroiMetrics.totalNilaiDampak) }}, berikut rincian nilai yang tereduksi di setiap tahap sampai menjadi Dampak Nilai Sekarang {{ formatRupiah(sroiMetrics.pvImpact) }}:
+ Rasio dihitung dari Dampak Nilai Saat Ini dibanding Nilai Input, bukan dari pembulatan atau pemotongan sepihak. Dari Total Nilai Dampak Sosial {{ formatRupiah(sroiMetrics.totalNilaiDampak) }}, berikut rincian nilai yang tereduksi di setiap tahap sampai menjadi Dampak Nilai Saat Ini {{ formatRupiah(sroiMetrics.pvImpact) }}:
  </p>
  <ul class="sroi-gap-list">
  <li v-if="sroiGapExplanation.lossDeadweight > 0">
@@ -710,10 +710,10 @@
  </li>
  </ul>
  <p class="sroi-gap-summary">
- Total nilai yang tereduksi dari seluruh faktor: <strong>{{ formatRupiah(sroiGapExplanation.totalLoss) }}</strong>. Karena Dampak Nilai Sekarang ({{ formatRupiah(sroiMetrics.pvImpact) }}) masih lebih kecil dari Nilai Input ({{ formatRupiah(sroiMetrics.valueOfInputs) }}), masih ada selisih <strong>{{ formatRupiah(sroiGapExplanation.shortfall) }}</strong> agar rasio mencapai 1,0.
+ Total nilai yang tereduksi dari seluruh faktor: <strong>{{ formatRupiah(sroiGapExplanation.totalLoss) }}</strong>. Karena Dampak Nilai Saat Ini ({{ formatRupiah(sroiMetrics.pvImpact) }}) masih lebih kecil dari Nilai Input ({{ formatRupiah(sroiMetrics.valueOfInputs) }}), masih ada selisih <strong>{{ formatRupiah(sroiGapExplanation.shortfall) }}</strong> agar rasio mencapai 1,0.
  </p>
  <p class="sroi-gap-suggestion">
- Angka ini bukan dikurangi secara sepihak — semua persentase (Kerugian Bobot, Atribusi, Pergeseran Manfaat) berasal dari estimasi/justifikasi program itu sendiri dan bisa disesuaikan lewat menu <em>edit manual</em> bila Anda memiliki data pendukung yang lebih kuat (mis. Kerugian Bobot lebih rendah karena tanpa program ini outcome benar-benar tidak akan terjadi). Alternatif lain adalah memperbesar estimasi Total Nilai Dampak Sosial, kira-kira perlu tambahan sekitar {{ formatRupiah(sroiGapExplanation.additionalDampakNeeded) }} pada estimasi awal (sebelum potongan) agar Dampak Nilai Sekarang menyamai Nilai Input — dengan asumsi persentase potongan yang sama.
+ Angka ini bukan dikurangi secara sepihak — semua persentase (Kerugian Bobot, Atribusi, Pergeseran Manfaat) berasal dari estimasi/justifikasi program itu sendiri dan bisa disesuaikan lewat menu <em>edit manual</em> bila Anda memiliki data pendukung yang lebih kuat (mis. Kerugian Bobot lebih rendah karena tanpa program ini outcome benar-benar tidak akan terjadi). Alternatif lain adalah memperbesar estimasi Total Nilai Dampak Sosial, kira-kira perlu tambahan sekitar {{ formatRupiah(sroiGapExplanation.additionalDampakNeeded) }} pada estimasi awal (sebelum potongan) agar Dampak Nilai Saat Ini menyamai Nilai Input — dengan asumsi persentase potongan yang sama.
  </p>
  </div>
  </div>
@@ -1122,7 +1122,7 @@ const sroiGapExplanation = computed(() => {
  const shortfall = Math.max(0, m.valueOfInputs - m.pvImpact);
 
  // Estimasi tambahan Total Nilai Dampak (sebelum potongan) yang dibutuhkan
- // agar Dampak Nilai Sekarang menyamai Nilai Input, dengan asumsi persentase
+ // agar Dampak Nilai Saat Ini menyamai Nilai Input, dengan asumsi persentase
  // Kerugian Bobot/Atribusi/Pergeseran Manfaat tetap sama seperti sekarang.
  const retentionFactor = m.totalNilaiDampak > 0
  ? (m.pvImpact / m.totalNilaiDampak)
@@ -2362,7 +2362,7 @@ const copyJson = async () => {
  color: #1B4D46;
 }
 
-/* ══════ Rumus Akhir SROI (pedoman baku, sesuai fraksi Dampak Nilai Sekarang / Nilai Input) ══════ */
+/* ══════ Rumus Akhir SROI (pedoman baku, sesuai fraksi Dampak Nilai Saat Ini / Nilai Input) ══════ */
 .sroi-formula-box {
  margin-top: 16px;
  padding-top: 16px;

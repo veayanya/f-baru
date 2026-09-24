@@ -907,7 +907,7 @@ const RAW_PARTS = [
         text: 'Angka utamanya adalah **Rasio Nilai Prakiraan Dampak**, yaitu nilai dampak yang dihasilkan saat ini dibagi nilai input (pagu).',
         bullets: [
           'Rasio **1,0 atau lebih** berarti **Layak** (hijau). Rasio **0,6 sampai 0,99** berarti **Cukup** (kuning). Di bawah **0,6** berarti **Kurang** (merah).',
-          'Empat kartu di bawahnya memuat Nilai Input (Pagu), Total Nilai Dampak Sosial, Total Dampak Bersih, dan Dampak Nilai Sekarang.',
+          'Empat kartu di bawahnya memuat Nilai Input (Pagu), Total Nilai Dampak Sosial, Total Dampak Bersih, dan Dampak Nilai Saat Ini.',
           '**Faktor Penyesuaian Dampak Sosial** memengaruhi hasil: deadweight, attribution, displacement, drop-off, dan discount rate. Batas deadweight maksimal 40%.'
         ],
         visual: 'sroi',
@@ -972,7 +972,7 @@ const SROI_CARDS = [
   { label: 'Nilai Input (Pagu)', value: 'Rp 250.000.000' },
   { label: 'Total Nilai Dampak Sosial', value: 'Rp 420.000.000' },
   { label: 'Total Dampak Bersih', value: 'Rp 335.000.000' },
-  { label: 'Dampak Nilai Sekarang', value: 'Rp 310.000.000' }
+  { label: 'Dampak Nilai Saat Ini', value: 'Rp 310.000.000' }
 ];
 const BELANJA_MOCK = [
   { nama: 'Honorarium Tim Penyusun Dokumen', efisien: false, alokasi: 'Rp 85.000.000', kurang: 'Rp 45.000.000' },

@@ -537,7 +537,7 @@
             <div class="ae-kv"><span>Nilai Dampak</span><span>{{ formatRp(sroiNow.totalNilaiDampak) }}</span></div>
             <div class="ae-kv"><span>Setelah Kerugian Bobot</span><span>{{ formatRp(sroiNow.dampakSetelahDeadweight) }}</span></div>
             <div class="ae-kv"><span>Dampak Bersih</span><span>{{ formatRp(sroiNow.netImpact) }}</span></div>
-            <div class="ae-kv"><span>Dampak Nilai Sekarang</span><span>{{ formatRp(sroiNow.pvImpact) }}</span></div>
+            <div class="ae-kv"><span>Dampak Nilai Saat Ini</span><span>{{ formatRp(sroiNow.pvImpact) }}</span></div>
             <p class="ae-hint" style="margin-top:10px;">{{ sroiNow.sroiInterpretation }}</p>
           </aside>
         </div>
