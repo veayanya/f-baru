@@ -146,7 +146,7 @@
  <div class="page-header">
  <span class="page-kicker">Pra RKA</span>
  <h2 class="page-title-lg">Buat Pra RKA</h2>
- <p class="page-desc">Perencanaan awal sebelum penyusunan RKA: susun, rapikan, dan verifikasi dokumen Renja/RKPD melalui e-Renja Studio.</p>
+ <p class="page-desc">Perencanaan awal sebelum penyusunan RKA: susun, rapikan, dan verifikasi Rancangan Awal/Akhir dokumen Renja PD melalui buat Pra RKA.</p>
  </div>
  <ErenjaStudio />
  </template>
